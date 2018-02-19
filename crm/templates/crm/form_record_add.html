@@ -1,0 +1,29 @@
+{% extends 'crm/base.html' %}
+{% load staticfiles %}
+
+{% block main_content %}
+
+<div class="row" style="padding:10px 50px 15px 50px;" align={% if user_profile.lang == 'en' %} "left" {% else %} "right" {% endif %}>
+<h2> <u> {% if user_profile.lang == 'en' %} Add New {% else %} إضافة {% endif %} {{title}} </u> </h2>
+</div>
+ <div class="row" align="center">
+   <div class="col-md-12 col-sm-12 col-xs-12" style="margin-left:0%;">
+       <form  method="post" action="{% url 'crm:model_record_save' %}">
+           {% csrf_token %}
+           {% include 'crm/from_template.html' %}
+           <input type="hidden" name="model_name" id="model_name" value="{{model_name}}">
+           <input type="hidden" name="pk_id" id="pk_id" value="{{pk_id}}">
+           <div class="form-group">
+               <div align="center" style="margin-top:10px;">
+                   <input type="submit" class="btn btn-primary" value={% if user_profile.lang == 'en' %} "Save" {% else %} "حفظ" {% endif %}>
+                   <a href="/crm/model_view/{{report_id}}/" class="btn btn-info">{% if user_profile.lang == 'en' %} Cancel {% else %} إلغاء {% endif %}</a>
+       </form>
+               </div>
+           </div>
+
+   </div>
+</div>
+<br>
+
+
+{% endblock %}

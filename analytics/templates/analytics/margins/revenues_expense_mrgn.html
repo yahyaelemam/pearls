@@ -1,0 +1,224 @@
+{% extends 'analytics/base.html' %}
+{% load staticfiles %}
+
+{% block main_content %}
+
+<head>
+    <script src = "{% static 'analytics/datatable/jquery-1.12.4.js' %}"></script>
+    <script src = "{% static 'analytics/datatable/jszip.min.js' %}"></script>
+    <script src = "{% static 'analytics/DataTables-1.10.13/media/js/jquery.dataTables.min.js' %}"></script>
+    <script src = "{% static 'analytics/DataTables-1.10.13/extensions/Buttons/js/dataTables.buttons.min.js' %}"></script>
+    <script src = "{% static 'analytics/DataTables-1.10.13/extensions/Buttons/js/buttons.html5.min.js' %}"></script>
+    <script src = "{% static 'analytics/DataTables-1.10.13/media/js/dataTables.bootstrap.min.js' %}"></script>
+    <link rel = "stylesheet" type="text/css" href= "{% static 'analytics/DataTables-1.10.13/media/css/jquery.dataTables.min.css' %}" />
+    <link rel = "stylesheet" type="text/css" href= "{% static 'analytics/DataTables-1.10.13/extensions/Buttons/css/buttons.dataTables.min.css' %}" />
+
+    <script src="{% static 'analytics/gentelella-master/vendors/moment/min/moment.min.js' %}"></script>
+    <script src="{% static 'analytics/gentelella-master/vendors/bootstrap-daterangepicker/daterangepicker.js' %}"></script>
+
+        <!-- Load c3.css -->
+    <link href="{% static 'C3/c3-0.4.18/c3.css'%}" rel="stylesheet">
+    <script src="{% static 'C3/d3.min.js'%}" charset="utf-8"></script>
+    <script src="{% static 'C3/c3-0.4.18/c3.min.js'%}"></script>
+
+<style>
+    .c3-line {
+    stroke-width: 1.5px;
+    }
+</style>
+
+</head>
+
+<div align="center">
+    <form id="frm_account_trends" method="post" action="{% url 'analytics:mrgn_revenues_expense' %}" dir="{{user_profile.form_dir}}">
+        {% csrf_token %}
+        {% for field in form %}
+
+            {{ hidden }}
+            <label for="id_{{ field.name }}">
+            {% if 'Company' in field.label_tag %}
+                 {{labels.company}}
+            {% elif 'Date From' in field.label_tag %}
+                {{labels.date_from}}
+            {% elif 'Date To' in field.label_tag %}
+                {{labels.date_to}}
+            {% elif 'Display' in field.label_tag %}
+                {{labels.display}}
+            {% else %}
+            {{field.label_tag}}
+            {% endif %}
+            : </label>
+            {% if 'date' not in field.name %}
+                {{ field }}
+            {% else %}
+                    <input type="text" id = "id_{{field.name}}" name="{{field.name}}" value="{{field.value}}" size="12"/>
+            {% endif %}
+        {% endfor %}
+        <input type="submit" {% if user_profile.lang == 'ar' %} value="عرض" {% else %} value ="Apply" {% endif %} class="btn btn-sm">
+    </form>
+<hr>
+
+</div>
+
+{% if ds|length > 0%}
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+            <div  id="chart_margin" style="width:100%;overflow: hidden" align="center"> </div>
+            <hr>
+    </div>
+
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <table id="dtbl" class="table display nowrap" cellspacing="0" width="100%" dir="{{user_profile.form_dir}}">
+          <thead>
+            <tr>
+                <th>{{labels.date}}</th> <th>{{labels.revenue}}</th> <th>{{labels.cost}}</th> <th>{{labels.net_profit}}</th> <th>{{labels.net_profit}} %</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for rw in ds %}
+            <tr>
+            {% for item in rw %}
+                {%if forloop.counter == 5 %}
+                    <td align="center"> {{item}}% </td>
+                {%elif forloop.counter == 1 %}
+                    <td align="center"> {{item}} </td>
+                {% else %}
+                    <td align="right"> {{item}} </td>
+                {% endif %}
+            {% endfor %}
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+</div>
+
+<script>
+
+//-------------------C3 chart------------------------
+
+
+var chart = c3.generate({
+    bindto: '#chart_margin',
+    data: {
+        x: 'x',
+        columns: [
+            ['x', {% for rw in ds %} "{{rw.0}}", {% endfor %} ],
+            ['{{labels.revenue}}', {% for rw in ds %} {{ rw.1|cut:","}},   {% endfor %} ],
+            ['{{labels.cost}}', {% for rw in ds %} {{ rw.2|cut:","}},   {% endfor %}],
+            ['{{labels.net_profit}}', {% for rw in ds %} {{ rw.3|cut:","}},   {% endfor %} ],
+            ['{{labels.net_profit}} %', {% for rw in ds %} {{ rw.4|cut:","}},   {% endfor %}]
+        ],
+        types:{
+            {{labels.revenue}}: 'bar',
+            {{labels.cost}}: 'bar',
+            '{{labels.net_profit}}': 'bar',
+            '{{labels.net_profit}} %': 'area-spline'
+        },
+        colors: {
+            '{{labels.net_profit}} %': "rgba(176, 100, 166, 1)"
+        },
+        axes: {
+            '{{labels.net_profit}} %': 'y2'
+        }
+    },
+    title:{
+    text: '{{labels.net_profit}}'
+    },
+    axis: {
+        y: {
+            tick: {
+                format: d3.format(",")
+            }
+       },
+        x: {
+            type: 'category',
+            tick: {
+                rotate: {% if ds|length > 3 %} 90 {% else %} 0 {% endif %},
+                multiline: false,
+
+            }
+        },
+        y2:{
+            show: true,
+            tick:{
+                format: function (y2) { return y2.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '%'; },
+            }
+        }
+    },
+    grid: {
+        x: {
+            show: false
+        },
+        y: {
+            show: false
+        }
+    }
+});
+
+$(document).ready(function() {
+	$('#dtbl').DataTable({
+		responsive: true,
+            columnDefs: [
+                    {"className": {% if user_profile.lang == 'en' %} "dt-left" {% else %} "dt-right" {% endif %} , "targets": "_all"}
+                  ],
+            "order": [[0, "asc" ]],
+            dom: 'Bfrtip',
+            buttons: [
+                'csv', 'excel'
+            ],
+            "scrollY":        "600px",
+            "scrollCollapse": true,
+            "paging":         true,
+            lengthMenu: [[ 15, 25, 50, -1], [15,  25, 50, "All"]]
+	});
+});
+
+
+$( "#id_chart_type" ).change(function() {
+  document.forms["frm_account_trends"].submit();
+});
+
+$( "#id_account_type_id" ).change(function() {
+  document.forms["frm_account_trends"].submit();
+});
+
+$( "#id_display_as" ).change(function() {
+  document.forms["frm_account_trends"].submit();
+});
+
+$( "#id_company" ).change(function() {
+  document.forms["frm_account_trends"].submit();
+});
+
+$(function() {
+    $('input[name="date_from"]').daterangepicker({
+        singleDatePicker: true,
+        showDropdowns: true,
+        locale: {
+            format: 'YYYY-MM-DD'
+        }
+    },
+    function(start, end, label) {
+        var years = moment().diff(start, 'years');
+    });
+});
+
+$(function() {
+    $('input[name="date_to"]').daterangepicker({
+        singleDatePicker: true,
+        showDropdowns: true,
+        locale: {
+            format: 'YYYY-MM-DD'
+        }
+    },
+    function(start, end, label) {
+        var years = moment().diff(start, 'years');
+    });
+});
+
+</script>
+
+{% endif %}
+{% endblock %}
+

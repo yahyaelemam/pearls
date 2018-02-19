@@ -1,0 +1,148 @@
+
+{% extends 'analytics/base.html' %}
+{% load staticfiles %}
+
+{% block main_content %}
+
+<head>
+    <script src="{% static 'Chart.js.2.7/Chart.js'%}"></script>
+
+    <script src="{% static 'echart/echarts.min.js'%}"></script>
+</head>
+
+<div class="row">
+    <div class="col-md-6 col-sm-12 col-xs-12">
+       <div class="x_panel">
+           <div class="x_title">
+                <h2>Trends KPIs : <small>  {{title_str|cut:"--"}}  </small> </h2>
+                <ul class="nav navbar-right panel_toolbox">
+                  <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                  </li>
+
+                  <li><a class="close-link"><i class="fa fa-close"></i></a>
+                  </li>
+                </ul>
+                <div class="clearfix"></div>
+           </div>
+           <div class="x_content">
+            <div class="chart-container" style="position: relative;">
+                <canvas id="radar_chart"> </canvas>
+
+            </div>
+           </div>
+       </div>
+    </div>
+    <div class="col-md-6 col-sm-12 col-xs-12">
+       <div class="x_panel">
+           <div class="x_title">
+                <h2>Trends KPIs : <small>  {{title_str|cut:"--"}}  </small> </h2>
+                <ul class="nav navbar-right panel_toolbox">
+                  <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                  </li>
+
+                  <li><a class="close-link"><i class="fa fa-close"></i></a>
+                  </li>
+                </ul>
+                <div class="clearfix"></div>
+           </div>
+           <div class="x_content">
+            <div class="chart-container" style="position: relative;">
+               <div id="echart_radar" style="width: 100%;height:230px;"></div>
+
+            </div>
+           </div>
+       </div>
+    </div>
+</div>
+
+
+
+
+
+<script>
+
+var ctx = document.getElementById("radar_chart");
+
+var myRadarChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+    labels: ['WS', 'Indonile', 'SAR', 'Sinnar'],
+    datasets: [
+        {
+        label: 'Budget',
+        data: [9500, 4400, 4700, 4000],
+        fill:true,
+        backgroundColor:"rgba(255, 99, 132, 0.2)",
+        },
+        {
+        label: 'Actual',
+        data: [4300, 4200, 4300, 8100],
+        fill:true,
+        backgroundColor:"rgba(23, 199, 122, 0.2)",
+        },
+    ]
+    },
+
+    options:{
+    scale: {
+        // Hides the scale
+        display: true,
+        ticks: {
+            display: false
+        },
+
+    }
+    }
+});
+
+
+
+
+ var myChart = echarts.init(document.getElementById('echart_radar'));
+
+option = {
+    title: {
+    //    text: 'Budget KPI'
+    },
+    tooltip: {},
+    legend: {
+        data: ['Budget', 'Actual'],
+        right: 20
+    },
+    radar: {
+        // shape: 'circle',
+        name: {
+            textStyle: {
+                color: '#fff',
+                backgroundColor: '#999',
+                borderRadius: 3,
+                padding: [3, 5]
+           }
+        },
+        indicator: [
+           { name: 'WS'},
+           { name: 'Indonile'},
+           { name: 'SAR'},
+           { name: 'Sinnar'}
+        ]
+    },
+    series: [{
+        name: 'Actual vs Budget',
+        type: 'radar',
+        // areaStyle: {normal: {}},
+        data : [
+            {
+                value : [9500, 4400, 4700, 4000],
+                name : 'Budget'
+            },
+             {
+                value : [4300, 4200, 4300, 8100],
+                name : 'Actual'
+            }
+        ]
+    }]
+};
+ myChart.setOption(option);
+</script>
+
+{% endblock %}

@@ -1,0 +1,107 @@
+{
+  "analytics": {
+    "class": "fa fa-bar-chart-o",
+    "title": {"en": "Analytics", "ar": "مؤشرات قياس   الأداء"},
+    "sub_title": "Analytics!",
+    "url": "/analytics/",
+    "links": [
+      {
+        "class":"glyphicon glyphicon-signal",
+        "title": {"en": "Trends KPIs", "ar": "مراقبة الأداء"},
+        "sub_links": [
+          {"en": "Accounts Types", "ar": "أنواع الحسابات", "url": "/analytics/account_trends/"},
+          {"en": "Accounts Categories", "ar": "تصنيفات الحسابات", "url": "/analytics/account_trends_detail/"}
+        ]
+      },
+      {
+        "class": "fa fa-line-chart",
+        "title": {"en": "Margins KPIs", "ar": "هامش الربح"},
+        "sub_links":[
+          {"en": "Revenues vs Expense", "ar": "مقارنة المصروفات والحسابات", "url": "/analytics/mrgn_revenues_expense/"}
+        ]
+      },
+      {
+        "class": "glyphicon glyphicon-bitcoin",
+        "title": {"en": "Budget", "ar": "الميزانية"},
+        "sub_links": [
+          {"en": "Budget - Dashboard", "ar": "مؤشرات أداء الميزانية", "url": "/analytics/budget_dashboard/"},
+          {"en": "View Budget - Account", "ar": "استعراض الميزانية", "url": "/analytics/budget_view/"},
+          {"en": "Add New Budget - Account", "ar": "إدخال الميزانية", "url": "/pearls/analytics/budget/add/"}
+        ]
+      },
+      {
+        "class": "fa fa-table",
+        "title": {"en": "Pearls Admin", "ar": "admin"},
+        "sub_links":[
+          {"en": "Admin", "ar": "Admin", "url": "/pearls/"}
+        ]
+      }
+
+    ]
+  },
+  "crm": {
+    "class": "fa fa-users",
+    "title": {"en": "CRM", "ar": "إدارة علاقات العملاء" },
+    "sub_title": "CRM!",
+    "url": "/crm/",
+    "links": [
+      {
+        "class": "fa fa-spinner",
+        "title": {"en": "Opportunities Management", "ar": "إدارة الفرص"},
+        "sub_links":[
+          {"en": "Opportunities", "ar": "الفرص", "url": "/crm/model_view/opportunities/"},
+          {"en": "Opportunities Calendar", "ar": "التقويم للفرص", "url": "/crm/opportunities_calendar/"},
+          {"en": "Add New opportunity", "ar": "إضافة فرصة جديدة", "url": "/crm/model_view/customers/"}
+        ]
+      },
+      {
+        "class": "fa fa-calendar",
+        "title": {"en": "Customers Events", "ar": "التواصل مع العملاء"},
+        "sub_links":[
+          {"en": "Calendar", "ar": "التقويم والمواعيد", "url": "/crm/customers_events/"},
+          {"en": "Customers Events", "ar": "التواصل والأنشطة", "url": "/crm/model_view/customersactivities/"},
+          {"en": "Events Actions", "ar": "نتائج التواصل", "url": "/crm/model_view/customersactivitiesactions/"}
+        ]
+      },
+      {
+        "class": "fa fa-paw",
+        "title": {"en": "Customers", "ar": "العملاء"},
+        "sub_links":[
+          {"en": "Customers", "ar": "العملاء", "url": "/crm/model_view/customers/"},
+          {"en": "Add New Customer", "ar": "إضافة عميل", "url": "/crm/model_record_add/customers/add/"},
+          {"en": "Customers Details", "ar": "تفاصيل العملاء", "url": "/crm/model_view/customersdetails/"},
+          {"en": "Customers Status & Rate", "ar": "حالة وتقييم العملاء", "url": "/crm/model_view/customersstatus/"}
+        ]
+      },
+      {
+        "class": "glyphicon glyphicon-bitcoin",
+        "title": {"en": "Budget", "ar": "الميزانية"},
+        "sub_links": [
+          {"en": "Budget - Categories", "ar": "الميزانية - التصنيف", "url": "/crm/model_view/categoriesbudget/"},
+          {"en": "Budget - Industries", "ar": "الميزانية - النشاط", "url": "/crm/model_view/industriesbudget/"},
+          {"en": "Budget - Sales Agents", "ar": "الميزانية - موظفي التسويق", "url": "/crm/model_view/salesagentsbudget/"},
+          {"en": "Budget - Customers", "ar": "الميزانية - العملاء", "url": "/crm/model_view/customersbudget/"}
+        ]
+      },
+      {
+        "class": "fa fa-gears",
+        "title": {"en": "Settings", "ar": "الإعدادات"},
+        "sub_links":[
+          {"en": "Customers Categories", "ar": "التصنيفات", "url": "/crm/model_view/customerscategories/"},
+          {"en": "Customers Industries", "ar": "الأنشطة", "url": "/crm/model_view/customersindustries/"},
+          {"en": "Countries", "ar": "الدول", "url": "/crm/model_view/countries/"},
+          {"en": "States", "ar": "الولايات", "url": "/crm/model_view/states/"},
+          {"en": "Cities", "ar": "المدن", "url": "/crm/model_view/cities/"},
+          {"en": "Sales Agents", "ar": "موظفي التسويق", "url": "/crm/model_view/salesagents/"},
+          {"en": "Activities Types", "ar": "طرق التواصل مع العملاء", "url": "/crm/model_view/activitiestypes/"},
+          {"en": "Missed Opportunities Reasons", "ar": "اسباب ضياع الفرص", "url": "/crm/model_view/missedopportunitiesreasons/"}
+
+        ]
+      }
+    ]
+  }
+
+
+
+
+}

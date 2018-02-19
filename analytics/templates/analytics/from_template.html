@@ -1,0 +1,12 @@
+ <table >
+    {% for field in form %}
+        <tr>
+            {% if field.field.widget.input_type != 'hidden' %}
+                <td ><label for="id_{{ field.name }}"> {{ field.label_tag }} </label></td>
+                <td>{{ field }}</td>
+                <td> <font  color="red">{{ field.errors}} </font> </td>
+            {% endif %}
+        </tr>
+    {% endfor %}
+ </table>
+

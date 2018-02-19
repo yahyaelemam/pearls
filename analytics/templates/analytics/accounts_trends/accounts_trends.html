@@ -1,0 +1,234 @@
+{% extends 'analytics/base.html' %}
+{% load staticfiles %}
+
+{% block main_content %}
+
+<head>
+     <script src="{% static 'Chart.js.2.7/Chart.js'%}"></script>
+    <!-- DataTables CSS -->
+     <script src = "{% static 'analytics/datatable/jquery-1.12.4.js' %}"></script>
+    <script src = "{% static 'analytics/datatable/jszip.min.js' %}"></script>
+    <script src = "{% static 'analytics/DataTables-1.10.13/media/js/jquery.dataTables.min.js' %}"></script>
+    <script src = "{% static 'analytics/DataTables-1.10.13/extensions/Buttons/js/dataTables.buttons.min.js' %}"></script>
+    <script src = "{% static 'analytics/DataTables-1.10.13/extensions/Buttons/js/buttons.html5.min.js' %}"></script>
+    <script src = "{% static 'analytics/DataTables-1.10.13/media/js/dataTables.bootstrap.min.js' %}"></script>
+    <link rel = "stylesheet" type="text/css" href= "{% static 'analytics/DataTables-1.10.13/media/css/jquery.dataTables.min.css' %}" />
+    <link rel = "stylesheet" type="text/css" href= "{% static 'analytics/DataTables-1.10.13/extensions/Buttons/css/buttons.dataTables.min.css' %}" />
+
+    <script src="{% static 'analytics/gentelella-master/vendors/moment/min/moment.min.js' %}"></script>
+    <script src="{% static 'analytics/gentelella-master/vendors/bootstrap-daterangepicker/daterangepicker.js' %}"></script>
+
+    <style>
+        .chart-container {
+          position: relative;
+          margin: auto;
+          height: 40vh;
+          width: 80vw;
+        }
+    </style>
+</head>
+
+<div align="center">
+    <form id="frm_account_trends" method="post" action="{% url 'analytics:account_trends_summary' %}" dir="{{user_profile.form_dir}}">
+        {% csrf_token %}
+        {% for field in form %}
+            {% if forloop.counter == 4 %}
+                <br>
+            {% endif %}
+            {{ hidden }}
+            <label for="id_{{ field.name }}">
+                {% if 'Company' in field.label_tag %}
+                     {{labels.company}}
+                {% elif 'Date From' in field.label_tag %}
+                    {{labels.date_from}}
+                {% elif 'Date To' in field.label_tag %}
+                    {{labels.date_to}}
+                {% elif 'Display' in field.label_tag %}
+                    {{labels.display}}
+                {% elif 'Account type' in field.label_tag %}
+                    {{labels.account_type}}
+                {% elif 'Chart type' in field.label_tag %}
+                    {{labels.chart_type}}
+                {% else %}
+                {{field.label_tag}}
+                {% endif %}
+            : </label>
+            {% if 'date' not in field.name %}
+                {{ field }}
+            {% else %}
+                    <input type="text" id = "id_{{field.name}}" name="{{field.name}}" value="{{field.value}}" />
+            {% endif %}
+        {% endfor %}
+        <input type="submit" {% if user_profile.lang == 'ar' %} value="عرض" {% else %} value ="Apply" {% endif %} class="btn btn-sm">
+    </form>
+<hr>
+
+</div>
+
+{% if ds|length > 0%}
+    <div class="row">
+        <div class="chart-container" >
+            <canvas id="mycnvas" width="95%" height="25%" >  </canvas>
+
+        </div>
+    </div>
+     <hr>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+                <table id="dtbl" class="display" cellspacing="0" width="100%" dir="{{user_profile.form_dir}}">
+                  <thead>
+                    <tr>
+                        <th>{{labels.date}}</th> <th>{{labels.account}}</th> <th>{{labels.amount}}</th>
+                    </tr>
+                  </thead>
+                   <tbody>
+                  {% for rw in tbl %}
+                    <tr>
+                    {% for item in rw %}
+                        {%if forloop.counter == 3 %}
+                        <td   align = "right" > {{item}} </td>
+                        {% else %}
+                            <td> {{item}} </td>
+                        {% endif %}
+                    {% endfor %}
+                    </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+
+        </div>
+    </div>
+
+<script>
+
+var lst_color = [{% for i in Chart_color %} "{{ i|safe }}" , {% endfor %}]
+
+var ctx = document.getElementById("mycnvas");
+var myChart = new Chart(ctx, {
+    type: '{{chart_type}}',
+    data: {
+        labels: [{% for rw in header %} "{{rw}}", {% endfor %}],
+        datasets: [
+		 {% for rw in ds %}
+			{
+			type:                   '{{chart_type}}',
+			fill: false,
+			pointBorderWidth: 3,
+            pointHoverRadius: 5,
+            pointRadius: 1,
+            pointHitRadius: 10,
+			label:
+                {% if user_profile.lang == 'ar' and rw.0 == "Revenues"%}
+                        "الإيرادات"
+                {% elif user_profile.lang == 'ar' and rw.0 == "Expenses" %}
+                        "المصروفات"
+                {% else %}
+                    "{{ rw.0 }}"
+                {% endif %},
+			backgroundColor:        lst_color[{{forloop.counter}}-1] + "1)",
+			borderColor:            lst_color[{{forloop.counter}}-1] + "1)",
+			hoverBackgroundColor:   lst_color[{{forloop.counter}}-1] + "0.5)",
+			hoverBorderColor:       lst_color[{{forloop.counter}}-1] + "1)",
+			borderWidth:            {% if chart_type == 'bar' %} 1 {% else %} 3 {% endif %},
+			data:                   [{% for rwv in rw.1 %} {{ rwv|cut:","}},   {% endfor %} ],
+				},
+		{% endfor %}
+				]
+    },
+    options: {
+        maintainAspectRatio: false,
+        legend: {
+					display : true,
+					position : 'bottom',
+				},
+        scales: {
+				yAxes: [{
+					display : true,
+					ticks: {
+							userCallback: function(value, index, values) {
+									value = value.toString();
+									value = value.split(/(?=(?:...)*$)/);
+									value = value.join(',');
+									return  value;
+									},
+							beginAtZero: true
+						},
+				  }]
+				},
+        tooltips: {
+					mode: 'label',
+					callbacks: {
+			 		   label: function(tooltipItem, data) {  return  data.datasets[tooltipItem.datasetIndex].label  + ' : ' + tooltipItem.yLabel.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") ;}
+					},
+				},
+    }
+});
+
+$(document).ready(function() {
+	$('#dtbl').DataTable({
+		responsive: true,
+            columnDefs: [
+                    {"className": {% if user_profile.lang == 'en' %} "dt-left" {% else %} "dt-right" {% endif %} , "targets": "_all"}
+                  ],
+            "order": [[0, "asc" ]],
+            dom: 'Bfrtip',
+            buttons: [
+                'csv', 'excel'
+            ],
+            "scrollY":        "600px",
+            "scrollCollapse": true,
+            "paging":         true,
+            lengthMenu: [[ 15, 25, 50, -1], [15,  25, 50, "All"]]
+	});
+});
+
+
+$( "#id_chart_type" ).change(function() {
+  document.forms["frm_account_trends"].submit();
+});
+
+$( "#id_account_type_id" ).change(function() {
+  document.forms["frm_account_trends"].submit();
+});
+
+$( "#id_display_as" ).change(function() {
+  document.forms["frm_account_trends"].submit();
+});
+
+$( "#id_company" ).change(function() {
+  document.forms["frm_account_trends"].submit();
+});
+
+
+$(function() {
+    $('input[name="date_from"]').daterangepicker({
+        singleDatePicker: true,
+        showDropdowns: true,
+        locale: {
+            format: 'YYYY-MM-DD'
+        }
+    },
+    function(start, end, label) {
+        var years = moment().diff(start, 'years');
+    });
+});
+
+$(function() {
+    $('input[name="date_to"]').daterangepicker({
+        singleDatePicker: true,
+        showDropdowns: true,
+        locale: {
+            format: 'YYYY-MM-DD'
+        }
+    },
+    function(start, end, label) {
+        var years = moment().diff(start, 'years');
+    });
+});
+
+
+</script>
+
+{% endif %}
+{% endblock %}
+

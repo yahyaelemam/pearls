@@ -1,0 +1,71 @@
+<div class="row">
+
+            <div class="col-md-4 col-sm-4 col-xs-12">
+              <div class="x_panel tile fixed_height overflow_hidden">
+                <div class="x_title">
+                  <h2>Margin</h2>
+                  <ul class="nav navbar-right panel_toolbox">
+                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                    </li>
+                    <li class="dropdown">
+                      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"></a>
+                    </li>
+                    <li><a class="close-link"><i class="fa fa-close"></i></a>
+                    </li>
+                  </ul>
+                  <div class="clearfix"></div>
+                </div>
+                <div class="x_content">
+                  <table class="" style="width:100%">
+                    <tr>
+                      <th style="width:50%;">
+                        <p>Total Margin {{total_lst.2}}K</p>
+                      </th>
+
+                    </tr>
+                    <tr>
+                      <td>
+                        <canvas class="canvasDoughnut" height="120" width="120" style="margin: 15px 10px 10px 0"></canvas>
+                      </td>
+                      <td>
+                        <table class="tile_info">
+                          {% for rw in ds%}
+                          <tr>
+                            <td>
+                              <font size="1pt"> <i class="fa fa-square
+                                {%if forloop.counter == 1 %}
+                                    blue
+                                {%elif forloop.counter == 2 %}
+                                    green
+                                {%elif forloop.counter == 3 %}
+                                     purple
+                                {%elif forloop.counter == 4 %}
+                                    aero
+                                {%elif forloop.counter == 5 %}
+                                    red
+                                {% endif %}
+                                "></i> {{rw.0}} {{rw.6}}%
+                              </font>
+                            </td>
+                            <td>{{rw.3}}k</td>
+                          </tr>
+                          {% endfor %}
+
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+
+
+ </div>
+
+
+        """
+        Select IFNULL(sum(amount), 0) From pearls.analytics_accountstransactions
+        Where company_id =  """ + str(company_id) + """ And account_id like '""" + str(type_id) + """%'
+            And transaction_date between '""" + str(date_from) + """' and '""" + str(date_to) + """'
+        """

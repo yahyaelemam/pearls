@@ -1,0 +1,129 @@
+{% extends 'analytics/base.html' %}
+{% load staticfiles %}
+{% load status %}
+{% block main_content %}
+
+
+
+<div align="center">
+    <form id="frm_budgets" method="post" action="{% url 'analytics:budgets_view' %}">
+        {% csrf_token %}
+        {% for field in form %}
+
+            {{ hidden }} {{ field.label_tag }}
+                {{ field }}
+        {% endfor %}
+        <input type="submit" value="Submit" class="btn btn-primary btn-sm">
+            <a href="{% url 'analytics:budgets_view' %}" class = "btn btn-info btn-sm"
+               role="button"   data-toggle="tooltip" title="Add new budget control"> Add New </a>
+
+    </form>
+<hr>
+</div>
+
+{% if ds_summary|length > 0%}
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+          <div class="x_title">
+            <h2>Budget Summary : <small> {{title_str|cut:"--"}} </small></h2>
+            <ul class="nav navbar-right panel_toolbox">
+              <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+              </li>
+              <li><a class="close-link"><i class="fa fa-close"></i></a>
+              </li>
+            </ul>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            <table id="dtbl" class="table table-striped table-bordered table-hover" width="100%">
+              <thead>
+                <tr>
+                    <th>Company</th> <th>Year</th> <th>Account ID</th> <th>Account Name</th> <th>Budget Amount</th> <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for rw in ds_summary %}
+                <tr>
+                {% for item in rw %}
+                    {%if forloop.counter == 5 %}
+                        <td align="right"> {{item}} </td>
+                    {%elif forloop.counter == 6 %}
+                        {% status_get item|safe as status %}
+                        <td align="center">  {{status}} </td>
+                    {% else %}
+                        <td align="left"> {{item}} </td>
+                    {% endif %}
+                {% endfor %}
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+          <div class="x_title">
+            <h2>Budget Details : <small> {{title_str|cut:"--"}} </small></h2>
+            <ul class="nav navbar-right panel_toolbox">
+              <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+              </li>
+              <li><a class="close-link"><i class="fa fa-close"></i></a>
+              </li>
+            </ul>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            <table id="dtbl2" class="table table-striped table-bordered table-hover" width="100%">
+              <thead>
+                <tr>
+                    <th>ID</th> <th>Year</th> <th>Company</th> <th>Account ID</th> <th>Account Name</th> <th>Cost Center</th> <th>Budget</th> <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for rw in ds_detail %}
+                <tr>
+                {% for item in rw %}
+                    {%if forloop.counter == 7 %}
+                        <td align="right"> {{item}} </td>
+                    {%elif forloop.counter == 8 %}
+                        {% status_get item|safe as status %}
+                        <td align="center"> {{status}} </td>
+                    {% else %}
+                        <td align="left"> {{item}} </td>
+                    {% endif %}
+                {% endfor %}
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+$(document).ready(function() {
+	$('#dtbl').DataTable({
+		responsive: true,
+		lengthMenu: [[ 10, 15, 50, -1], [10,  15, 50, "All"]]
+	});
+
+    $('#dtbl2').DataTable({
+    responsive: true,
+    lengthMenu: [[ 10, 15, 50, -1], [10,  15, 50, "All"]]
+	});
+});
+
+</script>
+
+{% endif %}
+{% endblock %}
+
+

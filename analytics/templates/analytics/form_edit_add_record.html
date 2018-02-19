@@ -1,0 +1,27 @@
+{% extends 'analytics/base.html' %}
+{% load staticfiles %}
+
+{% block main_content %}
+
+<div class="row">
+   <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <div class="x_content" align="center">
+                 <form  action="" method="post">
+                    {% csrf_token %}
+                    {% include 'analytics/from_template.html' %}
+                     <input type="hidden" name="model_name" id="model_name" value="{{model_name}}">
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-6">
+                            <button typ="submit" class="btn btn-success" >Save</button>
+                        </div>
+                    </div>
+                 </form>
+            </div>
+       </div>
+   </div>
+</div>
+
+
+
+{% endblock %}

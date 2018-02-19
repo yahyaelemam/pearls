@@ -1,0 +1,13 @@
+<form id="frm_rq_rcd" method="get" action="{% url 'analytics:test3' %}">
+    <input type="hidden" name="pk_id" id="id_pk_id">
+    <input type="hidden" name="model_name" id="id_model_name">
+ </form>
+
+<script>
+   function get_record(model_name, pk_id){
+        document.getElementById("id_pk_id").value = pk_id
+        document.getElementById("id_model_name").value = model_name
+        document.forms["frm_rq_rcd"].submit();
+   }
+
+</script>

@@ -1,0 +1,425 @@
+{% extends 'crm/base.html' %}
+{% load staticfiles %}
+
+
+{% block main_content %}
+
+<head>
+
+    <script src = "{% static 'analytics/datatable/jquery-1.12.4.js' %}"></script>
+    <script src = "{% static 'analytics/datatable/jszip.min.js' %}"></script>
+    <script src = "{% static 'analytics/DataTables-1.10.13/media/js/jquery.dataTables.min.js' %}"></script>
+    <script src = "{% static 'analytics/DataTables-1.10.13/extensions/Buttons/js/dataTables.buttons.min.js' %}"></script>
+    <script src = "{% static 'analytics/DataTables-1.10.13/extensions/Buttons/js/buttons.html5.min.js' %}"></script>
+    <script src = "{% static 'analytics/DataTables-1.10.13/media/js/dataTables.bootstrap.min.js' %}"></script>
+    <link href="{% static 'analytics/gentelella-master/vendors/datatables.net-bs/css/dataTables.bootstrap.css' %}" rel="stylesheet">
+    <link href="{% static 'analytics/gentelella-master/vendors/datatables.net-responsive-bs/css/dataTables.responsive.css' %}" rel="stylesheet">
+
+<style>
+    {% if user_profile.lang == 'en' %}th.dt-left { text-align: left; }  {% else %} th.dt-center { text-align: center; } {% endif %} }
+</style>
+
+</head>
+
+<div class="row" align="center" dir="">
+   <div class="col-md-12 col-sm-12 col-xs-12" style="margin-left:0%;">
+        <form method="post" dir="{{user_profile.form_dir}}">
+            {% csrf_token %}
+            {{ form.customer_id }}
+                <table>
+                    <tr>
+                        <td>
+                            <label for="id_customer_code"> {{ form.customer_code.label }} </label>
+                        </td>
+                        <td>
+                            {{ form.customer_code }} <font  color="red">{{ form.customer_code.errors }} </font>
+                        </td>
+
+                        <td>
+                        <label   style="margin-right:20px;" for="id_customer_name"> {{ form.customer_name.label }} </label>
+                        </td>
+                        <td>
+                        {{ form.customer_name }} <font  color="red">{{ form.customer_name.errors }} </font>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="id_customer_category"> {{ form.customer_category.label }} </label>
+                        </td>
+                        <td>
+                            {{ form.customer_category }} <font  color="red">{{ form.customer_category.errors}} </font>
+                        </td>
+                        <td>
+                            <label style="margin-right:20px; for="id_customer_industry"> {{ form.customer_industry.label }} </label>
+                        </td>
+                        <td>
+                            {{ form.customer_industry }} <font  color="red">{{ form.customer_industry.errors}} </font>
+                        </td>
+                 </table>
+            <hr>
+            </div>
+    <br>
+            <div align="center">
+                <input type="submit" class="btn btn-primary"  value={% if user_profile.lang == 'en' %} "Save" {% else %} "حفظ" {% endif %}>
+                <a href="/crm/model_view/{{model_name}}/" class="btn btn-info"> {% if user_profile.lang == 'en' %} Back {% else %} رجوع {% endif %}</a>
+                <a href="{{form.website_url.value|safe}}" target="_blank" class="btn btn-dark" title="Website"> <span><i class="fa fa-location-arrow"></i></span></a>
+
+           </div>
+
+            <div class="" role="tabpanel" data-example-id="togglable-tabs">
+                <ul id="myTab" class="nav nav-tabs bar_tabs {% if user_profile.lang == 'en' %} '' {% else %} right {% endif %}" role="tablist">
+                    <li role="presentation" class="active"><a href="#tab_content1" id="address-tab" role="tab" data-toggle="tab" aria-expanded="true">{{labels.address}}</a>
+                    </li>
+                    <li role="presentation" class=""><a href="#tab_content2" role="tab" id="contact-detail-tab" data-toggle="tab" aria-expanded="false">{{labels.contacts}}</a>
+                    </li>
+                    <li role="presentation" class=""><a href="#tab_content3" role="tab" id="status_rate-tab" data-toggle="tab" aria-expanded="false">{{labels.status_rate}}</a>
+                    </li>
+                    <li role="presentation" class=""><a href="#tab_content4" role="tab" id="event-tab" data-toggle="tab" aria-expanded="false">{{labels.event}}</a>
+                    </li>
+                </ul>
+
+                <div id="myTabContent" class="tab-content">
+
+                    <div role="tabpanel" class="tab-pane fade active in" id="tab_content1" aria-labelledby="address-tab">
+                      <table dir="{{user_profile.form_dir}}">
+                         <tr>
+                             <td>
+                                 <label for="id_city"> {{ form.city.label_tag }} </label>
+                             </td>
+                             <td>
+                                 {{ form.city }}
+                             </td>
+                             <td>
+                                 <font  color="red">{{ form.city.errors}} </font>
+                             </td>
+                         </tr>
+                         <tr>
+                             <td>
+                                 <label for="id_website_url"> {{ form.website_url.label_tag }} </label>
+                             </td>
+                             <td>
+                                 {{ form.website_url }}
+                             </td>
+                             <td>
+                                 <font  color="red">{{ form.website_url.errors}} </font>
+                             </td>
+                         </tr>
+                         <tr>
+                             <td>
+                                 <label for="id_address"> {{ form.address.label_tag }} </label>
+                             </td>
+                             <td>
+                                 {{ form.address }}
+                             </td>
+                             <td>
+                                 <font  color="red">{{ form.address.errors}} </font>
+                             </td>
+                         </tr>
+                         <tr>
+                             <td>
+                                 <label for="id_street"> {{ form.street.label_tag }} </label>
+                             </td>
+                             <td>
+                                 {{ form.street }}
+                             </td>
+                             <td>
+                                 <font  color="red">{{ form.street.errors}} </font>
+                             </td>
+                         </tr>
+                         <tr>
+                             <td>
+                                 <label for="id_block_no"> {{ form.block_no.label_tag }} </label>
+                             </td>
+                             <td>
+                                 {{ form.block_no }}
+                             </td>
+                             <td>
+                                 <font  color="red">{{ form.block_no.errors}} </font>
+                             </td>
+                         </tr>
+                         <tr>
+                             <td>
+                                 <label for="id_building_no"> {{ form.building_no.label_tag }} </label>
+                             </td>
+                             <td>
+                                 {{ form.building_no }}
+                             </td>
+                             <td>
+                                 <font  color="red">{{ form.building_no.errors}} </font>
+                             </td>
+                         </tr>
+                          <tr>
+                             <td>
+                                 <label for="id_location_x"> {{ form.location_x.label_tag }} </label>
+                             </td>
+                             <td>
+                                 {{ form.location_x }}
+                             </td>
+                             <td>
+                                 <font  color="red">{{ form.location_x.errors}} </font>
+                             </td>
+                         </tr>
+                         <tr>
+                             <td>
+                                 <label for="id_location_y"> {{ form.location_y.label_tag }} </label>
+                             </td>
+                             <td>
+                                 {{ form.location_y }}
+                             </td>
+                             <td>
+                                 <font  color="red">{{ form.location_y.errors}} </font>
+                             </td>
+                         </tr>
+                     </table>
+
+                    </div>
+            <input type="hidden" name="model_name" id="model_name" value="{{model_name}}">
+            <input type="hidden" name="pk_id" id="pk_id" value="{{pk_id}}">
+        </form>
+        <div role="tabpanel" class="tab-pane fade" id="tab_content2" aria-labelledby="contact-detail-tab">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel">
+                  <div class="x_title">
+                    <h2> {{title2}} </h2>
+                    <ul class="nav navbar-right panel_toolbox">
+                        <li>
+                            <a href="/crm/customer_detail_add/{{pk_id}}/">{% if user_profile.lang == 'en' %} Add New {% else %} إدخال جديد {% endif %}</a>
+                        </li>
+                        {% if actions|length > 0 %}
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{% if user_profile.lang == 'en' %} Actions {% else %} الإجراءات {% endif %}</a>
+                            <ul class="dropdown-menu" role="menu">
+                                {% for action in actions%}
+                                    <li><a href="#" onclick="check_select('{{action.0}}')">{{action.1}}</a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                        {% endif %}
+                    </ul>
+                    <div class="clearfix"></div>
+                  </div>
+                <div class="x_content">
+                    <form  method="post" action="{% url 'crm:customer_detail_delete' %}" id="frm_customer_details_actions" >
+                         {% csrf_token %}
+                        {{ ds|safe }}
+                        <input type="hidden" name="customer_id" value="{{pk_id}}">
+                         <input type="hidden" name="selected_records" id="id_selected_records">
+                        <input type="hidden" name="action" id="id_action">
+                    </form>
+                  </div>
+                </div>
+            </div>
+        </div>
+
+        <div role="tabpanel" class="tab-pane fade" id="tab_content3" aria-labelledby="status_rate-tab">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel">
+                  <div class="x_title">
+                    <h2> {{title3}} </h2>
+                    <ul class="nav navbar-right panel_toolbox">
+                        <li>
+                            <a href="/crm/customer_status_rate_add/{{pk_id}}/">{% if user_profile.lang == 'en' %} Add New {% else %} إدخال جديد {% endif %}</a>
+                        </li>
+                        {% if actions3|length > 0 and ds3 %}
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{% if user_profile.lang == 'en' %} Actions {% else %} الإجراءات {% endif %}</a>
+                            <ul class="dropdown-menu" role="menu">
+                                {% for action in actions3%}
+                                    <li><a href="#" onclick="check_select3('{{action.0}}')">{{action.1}}</a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                        {% endif %}
+                    </ul>
+                    <div class="clearfix"></div>
+                  </div>
+                <div class="x_content">
+                    <form  method="post" action="{% url 'crm:customer_status_rate_delete' %}" id="frm_customer_status_rate" >
+                         {% csrf_token %}
+                        {{ ds3|safe }}
+                        <input type="hidden" name="customer_id" value="{{pk_id}}">
+                         <input type="hidden" name="selected_records" id="id_selected_records3">
+                        <input type="hidden" name="action" id="id_action3">
+                    </form>
+                  </div>
+                </div>
+            </div>
+        </div>
+
+        <div role="tabpanel" class="tab-pane fade" id="tab_content4" aria-labelledby="event_rate-tab">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel">
+                  <div class="x_title">
+                    <h2> {{title4}} </h2>
+                    <ul class="nav navbar-right panel_toolbox">
+                        <li>
+                            <a href="/crm/customers_event_add/{{pk_id}}/">{% if user_profile.lang == 'en' %} Add New {% else %} إدخال جديد {% endif %}</a>
+                        </li>
+                        {% if actions4|length > 0 and ds4 %}
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{% if user_profile.lang == 'en' %} Actions {% else %} الإجراءات {% endif %}</a>
+                            <ul class="dropdown-menu" role="menu">
+                                {% for action in actions4%}
+                                    <li><a href="#" onclick="check_select3('{{action.0}}')">{{action.1}}</a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                        {% endif %}
+                    </ul>
+                    <div class="clearfix"></div>
+                  </div>
+                <div class="x_content">
+                    <form  method="post" action="{% url 'crm:customer_status_rate_delete' %}" id="frm_customer_event" >
+                         {% csrf_token %}
+                        {{ ds4|safe }}
+                        <input type="hidden" name="customer_id" value="{{pk_id}}">
+                         <input type="hidden" name="selected_records" id="id_selected_records4">
+                        <input type="hidden" name="action" id="id_action4">
+                    </form>
+                  </div>
+                </div>
+            </div>
+        </div>
+
+</div>
+</div> </div>
+
+
+<br><br>
+
+<script>
+
+document.getElementById('dtbl').className='table table-striped   table-hover';
+document.getElementById('dtbl3').className='table table-striped   table-hover';
+document.getElementById('dtbl4').className='table table-striped   table-hover';
+
+$(document).ready(function() {
+    $('#dtbl').DataTable({
+            responsive: true,
+            lengthMenu: [[ 10, 15, 50, -1], [10,  15, 50, "All"]],
+            columnDefs: [
+                    {"className": {% if user_profile.lang == 'en' %} "dt-left" {% else %} "dt-right" {% endif %} , "targets": "_all"}
+                  ],
+    });
+
+    $('#dtbl3').DataTable({
+            responsive: true,
+            lengthMenu: [[ 10, 15, 50, -1], [10,  15, 50, "All"]],
+            columnDefs: [
+                    {"className": {% if user_profile.lang == 'en' %} "dt-left" {% else %} "dt-right" {% endif %} , "targets": "_all"}
+                  ],
+    });
+
+    $('#dtbl4').DataTable({
+            responsive: true,
+            lengthMenu: [[ 10, 15, 50, -1], [10,  15, 50, "All"]],
+            columnDefs: [
+                    {"className": {% if user_profile.lang == 'en' %} "dt-left" {% else %} "dt-right" {% endif %} , "targets": "_all"}
+                  ],
+    });
+});
+
+
+$("#slct_all").click(function () {
+    var chkAll = this;
+    var chkRows = $("#dtbl").find(".chkRow");
+    chkRows.each(function () {
+        $(this)[0].checked = chkAll.checked;
+    });
+});
+
+$("#slct_all3").click(function () {
+    var chkAll = this;
+    var chkRows = $("#dtbl3").find(".chkRow");
+    chkRows.each(function () {
+        $(this)[0].checked = chkAll.checked;
+    });
+});
+
+$("#slct_all4").click(function () {
+    var chkAll = this;
+    var chkRows = $("#dtbl3").find(".chkRow");
+    chkRows.each(function () {
+        $(this)[0].checked = chkAll.checked;
+    });
+});
+
+function check_select(action){
+    var s = '';
+    var chkAll = this;
+    var chkRows = $("#dtbl").find(".chkRow");
+    chkRows.each(function () {
+        if ($(this)[0].checked) {
+            s = s + $(this)[0].value + ',';
+         }
+    });
+    if (s != '') {
+        document.getElementById("id_selected_records").value = s
+        document.getElementById("id_action").value = action
+        document.forms["frm_customer_details_actions"].submit();
+    }
+    else {
+        var msg_str = {% if user_profile.lang == 'en' %} "You did not select any record, please tick record/records first."
+                        {% else %} "لم تقم بالاختيار الرجاء تحديد البيانات أولا" {% endif %};
+        alert(msg_str);
+
+    }
+}
+
+function check_select3(action){
+    var s = '';
+    var chkAll = this;
+    var chkRows = $("#dtbl3").find(".chkRow");
+    chkRows.each(function () {
+        if ($(this)[0].checked) {
+            s = s + $(this)[0].value + ',';
+         }
+    });
+
+    if (s != '') {
+        document.getElementById("id_selected_records3").value = s
+        document.getElementById("id_action3").value = action
+        document.forms["frm_customer_status_rate"].submit();
+    }
+    else {
+        var msg_str = {% if user_profile.lang == 'en' %} "You did not select any record, please tick record/records first."
+                        {% else %} "لم تقم بالاختيار الرجاء تحديد البيانات أولا" {% endif %};
+        alert(msg_str);
+
+    }
+}
+
+function check_select4(action){
+    var s = '';
+    var chkAll = this;
+    var chkRows = $("#dtbl4").find(".chkRow");
+    chkRows.each(function () {
+        if ($(this)[0].checked) {
+            s = s + $(this)[0].value + ',';
+         }
+    });
+
+    if (s != '') {
+        document.getElementById("id_selected_records4").value = s
+        document.getElementById("id_action4").value = action
+        document.forms["frm_customer_event"].submit();
+    }
+    else {
+        var msg_str = {% if user_profile.lang == 'en' %} "You did not select any record, please tick record/records first."
+                        {% else %} "لم تقم بالاختيار الرجاء تحديد البيانات أولا" {% endif %};
+        alert(msg_str);
+
+    }
+}
+
+
+
+
+document.getElementById("id_customer_name").size = "35";
+
+ </script>
+
+{% endblock %}

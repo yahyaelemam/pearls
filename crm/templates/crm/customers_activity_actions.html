@@ -1,0 +1,171 @@
+{% extends 'crm/base.html' %}
+{% load staticfiles %}
+
+
+{% block main_content %}
+<head>
+    <script src="{% static 'analytics/gentelella-master/vendors/moment/min/moment.min.js' %}"></script>
+    <script src="{% static 'analytics/gentelella-master/vendors/bootstrap-daterangepicker/daterangepicker.js' %}"></script>
+</head>
+
+<div class="row" style="padding:10px 50px 15px 50px;" align={% if user_profile.lang == 'en' %} "left" {% else %} "right" {% endif %}>
+<h2> <u>{{title}} </u> </h2>
+</div>
+ <div class="row" align="center">
+   <form method="post" action="{% url 'crm:customers_event_actions_save' %}" dir="{{user_profile.form_dir}}">
+       {% csrf_token %}
+       <input type="hidden" name="activity_id" value="{{activity_id}}">
+        <table>
+            <tr>
+                <td width="100px;">
+                     <label for="id_action_time"> {{ form.action_time.label }} </label>
+                </td>
+                <td width="150px;">
+                    {{ form.action_time }} <font  color="red">{{ form.action_time.errors }} </font>
+                </td>
+
+                <td width="100px;" align="center">
+                    <label for="id_contacted_person_name"> {{ form.contacted_person_name.label }} </label>
+                </td>
+                <td width="150px;">
+                    {{ form.contacted_person_name }} <font  color="red">{{ form.contacted_person_name.errors }} </font>
+                </td>
+            </tr>
+            <tr>
+                <td width="100px;">
+                     <label for="id_description"> {{ form.description.label }} </label>
+                </td>
+                <td width="150px;">
+                    {{ form.description }} <font  color="red">{{ form.description.errors }} </font>
+                </td>
+
+                <td width="100px;" align="center">
+                    <label for="id_feedback"> {{ form.feedback.label }}  </label>
+                </td>
+                <td width="150px;">
+                    {{ form.feedback }} <font  color="red">{{ form.feedback.errors }} </font>
+                </td>
+            </tr>
+
+            <tr>
+                <td width="100px;">
+                     <label for="id_actions"> {{ form.actions.label }} </label>
+                </td>
+                <td width="150px;">
+                    {{ form.actions }} <font  color="red">{{ form.actions.errors }} </font>
+                </td>
+
+                <td  align="left" width="100px;">
+                    <table>
+                        <tr style="height:30px;">
+                            <td  width="100px;" align="center">
+                                <label for="id_actions_date"> {{ form.actions_date.label }} </label>
+                            </td>
+                        </tr>
+                        <tr style="height:30px;">
+                            <td  width="100px;" align="center" >
+                                <label for="id_status"> {{ form.status.label }} </label>
+                            </td>
+                        </tr>
+                        <tr style="height:30px;">
+                            <td width="100px;" align="center" >
+                                <label for="id_user"> {{ form.user.label }} </label>
+                            </td>
+                        </tr>
+
+
+                    </table>
+                </td>
+                <td width="150px;">
+                    <table>
+                        <tr style="height:30px;">
+                            <td>
+                                {{ form.actions_date }} <font  color="red">{{ form.actions_date.errors }} </font>
+                            </td>
+                        </tr>
+                        <tr style="height:30px;">
+                            <td>
+                                {{ form.status }} <font  color="red">{{ form.status.errors }} </font>
+                            </td>
+                        </tr>
+                        <tr style="height:30px;">
+                            <td>
+                                {{ form.user }} <font  color="red">{{ form.user.errors }} </font>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+         </table>
+
+
+ </div>
+
+        <div class="form-group">
+           <div align="center" style="margin-top:10px;">
+               <input type="submit" id="btn_save" class="btn btn-primary" value={% if user_profile.lang == 'en' %} "Save" {% else %} "حفظ" {% endif %}>
+               <a href="/crm/customers_event_update/{{activity_id}}/" class="btn btn-info"> {% if user_profile.lang == 'en' %} Back {% else %} رجوع {% endif %}</a>
+
+           </div>
+       </div>
+   </form>
+ </div>
+<br>
+<script>
+
+ {% for f in hidden_fields %}
+    document.getElementById("id_{{f}}").disabled = true;
+ {% endfor %}
+
+
+{% for field in form %}
+
+    {% if 'date' in field.name %}
+        $(function() {
+            $('input[name="{{field.name}}"]').daterangepicker({
+                singleDatePicker: true,
+               // autoUpdateInput: false,
+                showDropdowns: true,
+                locale: {
+                    format: 'YYYY-MM-DD'
+                }
+            },
+             function(date) {
+                $('#datepicker1').val(date.format());
+             })
+        });
+    {% endif %}
+
+    {% if 'time' in field.name %}
+         $(function() {
+            $('input[name="{{field.name}}"]').daterangepicker({
+                singleDatePicker: true,
+                showDropdowns: true,
+                timePicker: true,
+            timePicker24Hour: true,
+            timePickerIncrement: 10,
+                locale: {
+                    format: 'YYYY-MM-DD H:mm'
+                }
+            },
+            function(start, end, label) {
+                var years = moment().diff(start, 'years');
+            });
+         });
+    {% endif %}
+ {% endfor %}
+
+{% if form.status.value == "c" %}
+
+    {% for field in form %}
+        {% if 'activity_id' not in field.name %}
+            document.getElementById("id_{{field.name}}").disabled = true;
+            document.getElementById('btn_save').style.visibility = 'hidden';
+        {% endif %}
+    {% endfor %}
+
+{% endif%}
+
+ </script>
+
+{% endblock %}

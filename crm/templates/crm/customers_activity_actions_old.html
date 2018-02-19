@@ -1,0 +1,99 @@
+{% extends 'crm/base.html' %}
+{% load staticfiles %}
+
+
+{% block main_content %}
+<head>
+    <script src="{% static 'analytics/gentelella-master/vendors/moment/min/moment.min.js' %}"></script>
+    <script src="{% static 'analytics/gentelella-master/vendors/bootstrap-daterangepicker/daterangepicker.js' %}"></script>
+</head>
+
+<div class="row" style="padding:10px 50px 15px 50px;" align={% if user_profile.lang == 'en' %} "left" {% else %} "right" {% endif %}>
+<h2> <u>{{title}} </u> </h2>
+</div>
+ <div class="row" align="center">
+   <div class="col-md-12 col-sm-12 col-xs-12" style="margin-left:0%;">
+       <form method="post" action="{% url 'crm:customers_event_actions_save' %}">
+           {% csrf_token %}
+           <table dir="{{user_profile.form_dir}}" style="margin-left:0%;">
+               <input type="hidden" name="activity_id" value="{{activity_id}}">
+                {% for field in form %}
+                    <tr>
+                        <td ><label for="id_{{ field.name }}"> {{ field.label_tag }} </label></td>
+                        {% if field.name == 'actions_date' %}
+                           <td> <input type="text" id="id_{{field.name}}" name="{{field.name}}" value=""> </td>
+                        {% else %}
+                            <td>{{ field }}</td>
+                        {% endif %}
+                        <td> <font  color="red">{{ field.errors}} </font> </td>
+                     </tr>
+                {% endfor %}
+           </table>
+           <div class="form-group">
+               <div align="center" style="margin-top:10px;">
+                   <input type="submit" id="btn_save" class="btn btn-primary" value={% if user_profile.lang == 'en' %} "Save" {% else %} "حفظ" {% endif %}>
+                   <a href="/crm/customers_event_update/{{activity_id}}/" class="btn btn-info"> {% if user_profile.lang == 'en' %} Back {% else %} رجوع {% endif %}</a>
+
+               </div>
+           </div>
+       </form>
+   </div>
+</div>
+<br>
+<script>
+
+ {% for f in hidden_fields %}
+        document.getElementById("id_{{f}}").disabled = true;
+ {% endfor %}
+
+
+{% for field in form %}
+
+    {% if 'date' in field.name %}
+        $(function() {
+            $('input[name="{{field.name}}"]').daterangepicker({
+                singleDatePicker: true,
+               // autoUpdateInput: false,
+                showDropdowns: true,
+                locale: {
+                    format: 'YYYY-MM-DD'
+                }
+            },
+             function(date) {
+                $('#datepicker1').val(date.format());
+             })
+        });
+    {% endif %}
+
+    {% if 'time' in field.name %}
+         $(function() {
+            $('input[name="{{field.name}}"]').daterangepicker({
+                singleDatePicker: true,
+                showDropdowns: true,
+                timePicker: true,
+            timePicker24Hour: true,
+            timePickerIncrement: 10,
+                locale: {
+                    format: 'YYYY-MM-DD H:mm'
+                }
+            },
+            function(start, end, label) {
+                var years = moment().diff(start, 'years');
+            });
+         });
+    {% endif %}
+ {% endfor %}
+
+{% if form.status.value == "c" %}
+
+    {% for field in form %}
+        document.getElementById("id_{{field.name}}").disabled = true;
+        document.getElementById('btn_save').style.visibility = 'hidden';
+
+    {% endfor %}
+
+{% endif%}
+
+ </script>
+
+{% endblock %}

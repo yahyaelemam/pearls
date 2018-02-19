@@ -1,0 +1,516 @@
+{% extends 'analytics/base.html' %}
+{% load staticfiles %}
+
+{% block main_content %}
+
+<head>
+    <!--<meta http-equiv="refresh" content="10"> -->
+    <script src="{% static 'analytics/gentelella-master/vendors/jquery/dist/jquery.js'%}"></script>
+<!-- bootstrap-progressbar -->
+    <script src="{% static 'analytics/gentelella-master/vendors/bootstrap-progressbar/bootstrap-progressbar.min.js'%}"></script>
+    <script src="{% static 'analytics/gentelella-master/vendors/Chart.js/dist/Chart.bundle.js'%}"></script>
+    <script src="{% static 'analytics/gentelella-master/vendors/Chart.js/dist/Chart.bundle.min.js'%}"></script>
+    <script src="{% static 'analytics/gentelella-master/vendors/moment/min/moment.min.js' %}"></script>
+    <script src="{% static 'analytics/gentelella-master/vendors/bootstrap-daterangepicker/daterangepicker.js' %}"></script>
+
+    <link href="{% static 'analytics/gentelella-master/vendors/datatables.net-bs/css/dataTables.bootstrap.css' %}" rel="stylesheet">
+    <link href="{% static 'analytics/gentelella-master/vendors/datatables.net-responsive-bs/css/dataTables.responsive.css' %}" rel="stylesheet">
+    <!-- DataTables JS -->
+    <script src="{% static 'analytics/gentelella-master/vendors/datatables.net/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'analytics/gentelella-master/vendors/datatables.net-bs/js/dataTables.bootstrap.min.js' %}"></script>
+    <script src="{% static 'analytics/gentelella-master/vendors/datatables.net-responsive/js/dataTables.responsive.js' %}"></script>
+
+<!-- Load c3.css -->
+    <link href="{% static 'C3/c3-0.4.18/c3.css'%}" rel="stylesheet">
+    <script src="{% static 'C3/d3.min.js'%}" charset="utf-8"></script>
+    <script src="{% static 'C3/c3-0.4.18/c3.min.js'%}"></script>
+
+<style>
+    .c3-line {
+    stroke-width: 2px;
+    }
+</style>
+
+</head>
+
+<script>
+    var lst_color = [{% for i in chart_color_custom %} "{{ i|safe }}" , {% endfor %}]
+</script>
+
+<!--------------------------------------Form----------------------------------------->
+<div class="row" align="center">
+
+        <form id="frm_index" method="post" action="{% url 'analytics:budget_dashboard' %}">
+
+            {% csrf_token %}
+            <i class="fa fa-calendar"></i>
+            <input type="text" name="daterange" value="{{date_from}} - {{date_to}}" style="background:#F8F9F9; cursor: pointer; padding: 5px 10px; border: 0px solid #ccc;"/>
+            &nbsp;
+            {% for i in companies %}
+                <label class="checkbox-inline">
+                  <input type="checkbox" name="company" id="company{{i.0}}" value={{i.0}} {{i.2}} />  {{i.1}}
+                </label>
+            {% endfor %}
+            &nbsp;
+            <input type="submit" value="Apply" class="btn btn-sm">
+        </form>
+
+</div>
+<hr>
+
+{% if ds_all.0.1.actual_revenue_all != '0' and ds_all.0.1.actual_expense_all != '0' %}
+
+<!-------------------------------------budget revenue vs actual------------------------------------------->
+<div class="row" >
+    <div class="col-md-6 col-sm-6 col-xs-12" >
+        <div class="x_content">
+            <div id="chart_revenue_budget_actual" style="width=100%;height:250px;align:center;float: center; overflow: hidden;" align="center"> </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-sm-6 col-xs-12" >
+        <table class="table table-striped table-hover" width="98%" style="margin-top:20px;" >
+          <thead>
+            <tr>
+                <th>{{labels.revenue}}</th>
+                <th>{{labels.budget}}</th> <th>{{labels.actual}}</th> <th>{{labels.diff}}</th> <th>{{labels.diff}} %</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for rw in ds_all %}
+            {% if rw.2 != 'm' %}
+                 <tr>
+                    <td style="color:darkblue;">{{rw.0}}</td>
+                    <td align="right">{{rw.1.budget_revenue_all}}</td>
+                    <td align="right">{{rw.1.actual_revenue_all}}</td>
+                     {% if '-' in rw.1.revenue_diff_all %}
+                        <td align="right" style="color:brown;">{{rw.1.revenue_diff_all}} </td>
+                     {% else %}
+                        <td align="right">{{rw.1.revenue_diff_all}} </td>
+                     {% endif %}
+                     {% if rw.1.revenue_per_all < 0 %}
+                        <td align="center" style="color:red;">{{rw.1.revenue_per_all}} %</td>
+                     {% else %}
+                        <td align="center">{{rw.1.revenue_per_all}} %</td>
+                     {% endif %}
+                </tr>
+            {% endif %}
+          {% endfor %}
+          </tbody>
+        </table>
+     </div>
+</div>
+<hr>
+<!------------------------------------- Expense expense vs actual------------------------------------------->
+<div class="row" >
+    <div class="col-md-6 col-sm-6 col-xs-12" >
+        <div class="x_content">
+            <div id="chart_expense_budget_actual" style="width=100%;height:250px;align:center;float: center; overflow: hidden;" align="center"> </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-sm-6 col-xs-12" >
+            <table class="table table-striped table-hover" width="100%" style="margin-top:20px;">
+                  <thead>
+                    <tr>
+                        <th>{{labels.cost}}</th>
+                        <th>{{labels.budget}}</th> <th>{{labels.actual}}</th> <th>{{labels.diff}}</th> <th>{{labels.diff}} %</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  {% for rw in ds_all %}
+                    {% if rw.2 != 'm' %}
+                         <tr>
+                            <td style="color:darkblue;">{{rw.0}}</td>
+                            <td align="right">{{rw.1.budget_expense_all}}</td>
+                            <td align="right">{{rw.1.actual_expense_all}}</td>
+                             {% if '-' in rw.1.expense_diff_all %}
+                                <td align="right" style="color:brown;">{{rw.1.expense_diff_all}} </td>
+                             {% else %}
+                                <td align="right">{{rw.1.expense_diff_all}} </td>
+                             {% endif %}
+                             {% if rw.1.expense_per_all < 0 %}
+                                <td align="center" style="color:red;">{{rw.1.expense_per_all}} %</td>
+                             {% else %}
+                                <td align="center">{{rw.1.expense_per_all}} %</td>
+                             {% endif %}
+                        </tr>
+                    {% endif %}
+                  {% endfor %}
+                  </tbody>
+                </table>
+        </div>
+</div>
+<hr>
+
+<!------------------------------------- Margin Budget vs actual------------------------------------------->
+
+<div class="row">
+    <div class="col-md-6 col-sm-6 col-xs-12">
+        <div class="x_content">
+            <div id="chart_margin_budget_actual" style="width=100%;height:250px;align:center;float: center; overflow: hidden;" align="center"> </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-sm-6 col-xs-12">
+        <table class="table table-striped table-hover" width="100%" style="margin-top:20px;">
+          <thead>
+            <tr>
+                <th>{{labels.net_profit}}</th>
+                <th>{{labels.budget}}</th> <th>{{labels.actual}}</th> <th>{{labels.diff}}</th> <th>{{labels.diff}} %</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for rw in ds_all %}
+            {% if rw.2 != 'm' %}
+                 <tr>
+                    <td style="color:darkblue;">{{rw.0}}</td>
+                    <td align="right">{{rw.1.budget_margin_all}}</td>
+                    <td align="right">{{rw.1.actual_margin_all}}</td>
+                     {% if '-' in rw.1.margin_diff_all %}
+                        <td align="right" style="color:brown;">{{rw.1.margin_diff_all}} </td>
+                     {% else %}
+                        <td align="right">{{rw.1.margin_diff_all}} </td>
+                     {% endif %}
+                     {% if rw.1.margin_per_all < 0 %}
+                        <td align="center" style="color:red;">{{rw.1.margin_per_all}} %</td>
+                     {% else %}
+                        <td align="center">{{rw.1.margin_per_all}} %</td>
+                     {% endif %}
+                </tr>
+            {% endif %}
+          {% endfor %}
+          </tbody>
+        </table>
+    </div>
+</div>
+
+<hr>
+
+<!------------------------------------- End of the fifth row opcos budget vs actual------------------------------------------->
+
+{% if ds_opco|length > 1 %}
+    {% for opco in ds_opco %}
+    <div class="row">
+        <div class="col-md-6 col-sm-6 col-xs-12">
+                <div class="x_content">
+            <div id="chart_{{opco.0.opco}}" style="width=100%;height:250px;align:center;float: center; overflow: hidden;" align="center"> </div>
+
+                </div>
+        </div>
+        <div class="col-md-6 col-sm-6 col-xs-12">
+            <table class="table table-striped table-hover" width="100%" style="margin-top:20px;">
+              <thead>
+                <tr>
+                    <th>{{opco.0.opco}} - {{labels.net_profit}}</th>
+                    <th>{{labels.budget}}</th> <th>{{labels.actual}}</th> <th>{{labels.diff}}</th> <th>{{labels.diff}} %</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for rw in opco.1 %}
+                {% if rw.3 != 'm' %}
+                     <tr>
+                        <td style="color:darkblue;">{{rw.0}}</td>
+                        <td align="right">{{rw.2.budget_margin}}</td>
+                        <td align="right">{{rw.2.actual_margin}}</td>
+                         {% if '-' in rw.1.2.margin_diff %}
+                            <td align="right" style="color:brown;">{{rw.2.margin_diff}} </td>
+                         {% else %}
+                            <td align="right">{{rw.2.margin_diff}} </td>
+                         {% endif %}
+                         {% if rw.2.margin_per < 0 %}
+                            <td align="center" style="color:red;">{{rw.2.margin_per}} %</td>
+                         {% else %}
+                            <td align="center">{{rw.2.margin_per}} %</td>
+                         {% endif %}
+                    </tr>
+                {% endif %}
+              {% endfor %}
+              </tbody>
+            </table>
+        </div>
+    </div>
+<hr>
+
+<script>
+var chart_chart_margin = c3.generate({
+    bindto: '#chart_{{opco.0.opco}}',
+    data: {
+        x: 'x',
+        columns: [
+            ['x', {% for rw in opco.1 %} {% if rw.3 == 'm' %} "{{rw.0}}", {%endif%} {% endfor %}],
+            ['{{labels.budget}}',{% for rw in opco.1 %} {% if rw.3 == 'm' %} {{rw.2.budget_margin|cut:","}},  {%endif%} {% endfor %}],
+            ['{{labels.actual}}', {% for rw in opco.1 %}  {% if rw.3 == 'm' %} {{rw.2.actual_margin|cut:","}},  {%endif%} {% endfor %}],
+            ['{{labels.diff}}', {% for rw in opco.1 %}  {% if rw.3 == 'm' %} {{rw.2.margin_diff|cut:","}},  {%endif%} {% endfor %}],
+            ['{{labels.diff}} %', {% for rw in opco.1 %}  {% if rw.3 == 'm' %} {{rw.2.margin_per|cut:","}},  {%endif%} {% endfor %}]
+        ],
+        types:{
+            {{labels.budget}}: 'bar',
+            {{labels.actual}}: 'bar',
+            '{{labels.diff}}': 'bar',
+            '{{labels.diff}} %': 'spline'
+        },
+        colors: {
+            '{{labels.diff}} %': "rgba(176, 100, 166,1)",
+            '{{labels.diff}}': "rgba(38,105,42, 1)"
+        },
+        axes: {
+            '{{labels.diff}} %': 'y2'
+        }
+    },
+    title: {
+      text: '{{opco.0.opco}} - {{labels.net_profit}}'
+    },
+    axis: {
+        y: {
+            tick: {
+                format: d3.format(",")
+            }
+       },
+        x: {
+            type: 'category',
+            tick: {
+                rotate: 90,
+                multiline: false,
+
+            }
+        },
+        y2:{
+            show: true,
+            tick:{
+                format: function (y2) { return y2.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '%'; },
+            }
+        }
+    },
+    grid: {
+        x: {
+            show: false
+        },
+        y: {
+            show: false
+        }
+    }
+});
+
+
+</script>
+{% endfor %}
+{% endif %}
+
+<script>
+
+var chart_chart_margin = c3.generate({
+    bindto: '#chart_revenue_budget_actual',
+    data: {
+        x: 'x',
+        columns: [
+            ['x', {% for rw in ds_all %} {% if rw.2 == 'm' %} "{{rw.0}}", {%endif%} {% endfor %}],
+            ['{{labels.budget}}',{% for rw in ds_all %} {% if rw.2 == 'm' %} {{rw.1.budget_revenue_all|cut:","}},  {%endif%} {% endfor %}],
+            ['{{labels.actual}}', {% for rw in ds_all %}  {% if rw.2 == 'm' %} {{rw.1.actual_revenue_all|cut:","}},  {%endif%} {% endfor %}],
+            ['{{labels.diff}}', {% for rw in ds_all %}  {% if rw.2 == 'm' %} {{rw.1.revenue_diff_all|cut:","}},  {%endif%} {% endfor %} ],
+            ['{{labels.diff}} %', {% for rw in ds_all %}  {% if rw.2 == 'm' %} {{rw.1.revenue_per_all|cut:","}},  {%endif%} {% endfor %}]
+        ],
+        types:{
+            {{labels.budget}}: 'bar',
+            {{labels.actual}}: 'bar',
+            '{{labels.diff}}': 'bar',
+            '{{labels.diff}} %': 'spline'
+        },
+        colors: {
+            '{{labels.diff}} %': "rgba(176, 100, 166,1)",
+            '{{labels.diff}}': "rgba(38,105,42, 1)"
+        },
+        axes: {
+            '{{labels.diff}} %': 'y2'
+        }
+    },
+    title: {
+      text: '{{labels.revenue}}'
+    },
+    axis: {
+        y: {
+            tick: {
+                format: d3.format(",")
+            }
+       },
+        x: {
+            type: 'category',
+            tick: {
+                rotate: 90,
+                multiline: false,
+
+            }
+        },
+        y2:{
+            show: true,
+            tick:{
+                format: function (y2) { return y2.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '%'; },
+            }
+        }
+    },
+    grid: {
+        x: {
+            show: false
+        },
+        y: {
+            show: false
+        }
+    }
+});
+
+
+//------------------------------------------------
+
+var chart_chart_margin = c3.generate({
+    bindto: '#chart_expense_budget_actual',
+    data: {
+        x: 'x',
+        columns: [
+            ['x', {% for rw in ds_all %} {% if rw.2 == 'm' %} "{{rw.0}}", {%endif%} {% endfor %}],
+            ['{{labels.budget}}', {% for rw in ds_all %} {% if rw.2 == 'm' %} {{rw.1.budget_expense_all|cut:","}},  {%endif%} {% endfor %}],
+            ['{{labels.actual}}', {% for rw in ds_all %}  {% if rw.2 == 'm' %} {{rw.1.actual_expense_all|cut:","}},  {%endif%} {% endfor %}],
+            ['{{labels.diff}}', {% for rw in ds_all %}  {% if rw.2 == 'm' %} {{rw.1.expense_diff_all|cut:","}},  {%endif%} {% endfor %} ],
+            ['{{labels.diff}} %', {% for rw in ds_all %}  {% if rw.2 == 'm' %} {{rw.1.expense_per_all|cut:","}},  {%endif%} {% endfor %}]
+        ],
+        types:{
+            {{labels.budget}}: 'bar',
+            {{labels.actual}}: 'bar',
+            {{labels.diff}}: 'bar',
+            '{{labels.diff}} %': 'spline'
+        },
+        colors: {
+            '{{labels.diff}} %': "rgba(176, 100, 166,1)",
+            '{{labels.diff}}': "rgba(38,105,42, 1)"
+        },
+        axes: {
+            '{{labels.diff}} %': 'y2'
+        }
+    },
+    title: {
+      text: '{{labels.cost}}'
+    },
+    axis: {
+        y: {
+            tick: {
+                format: d3.format(",")
+            }
+       },
+        x: {
+            type: 'category',
+            tick: {
+                rotate: 90,
+                multiline: false,
+
+            }
+        },
+        y2:{
+            show: true,
+            tick:{
+                format: function (y2) { return y2.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '%'; },
+            }
+        }
+    },
+    grid: {
+        x: {
+            show: false
+        },
+        y: {
+            show: false
+        }
+    }
+});
+
+
+//------------------------------------------------
+
+var chart_chart_margin = c3.generate({
+    bindto: '#chart_margin_budget_actual',
+    data: {
+        x: 'x',
+        columns: [
+            ['x', {% for rw in ds_all %} {% if rw.2 == 'm' %} "{{rw.0}}", {%endif%} {% endfor %}],
+            ['{{labels.budget}}', {% for rw in ds_all %} {% if rw.2 == 'm' %} {{rw.1.budget_margin_all|cut:","}},  {%endif%} {% endfor %}],
+            ['{{labels.actual}}', {% for rw in ds_all %}  {% if rw.2 == 'm' %} {{rw.1.actual_margin_all|cut:","}},  {%endif%} {% endfor %}],
+            ['{{labels.diff}}', {% for rw in ds_all %}  {% if rw.2 == 'm' %} {{rw.1.margin_diff_all|cut:","}},  {%endif%} {% endfor %}],
+            ['{{labels.diff}} %', {% for rw in ds_all %}  {% if rw.2 == 'm' %} {{rw.1.margin_per_all|cut:","}},  {%endif%} {% endfor %}]
+        ],
+        types:{
+            {{labels.budget}}: 'bar',
+            {{labels.actual}}: 'bar',
+            {{labels.diff}}: 'bar',
+            '{{labels.diff}} %': 'spline'
+        },
+        colors: {
+            '{{labels.diff}} %': "rgba(176, 100, 166,1)",
+            '{{labels.diff}}': "rgba(38,105,42, 1)"
+        },
+        axes: {
+            '{{labels.diff}} %': 'y2'
+        }
+    },
+    title: {
+      text: '{{labels.net_profit}}'
+    },
+    axis: {
+        y: {
+            tick: {
+                format: d3.format(",")
+            }
+       },
+        x: {
+            type: 'category',
+            tick: {
+                rotate: 90,
+                multiline: false,
+
+            }
+        },
+        y2:{
+            show: true,
+            tick:{
+                format: function (y2) { return y2.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '%'; },
+            }
+        }
+    },
+    grid: {
+        x: {
+            show: false
+        },
+        y: {
+            show: false
+        }
+    }
+});
+
+</script>
+
+{% endif%}
+
+<script>
+//--------------------------------
+$(function() {
+    $('input[name="daterange"]').daterangepicker({
+    locale: {
+            format: 'YYYY/MM/DD'
+        }
+});
+});
+
+
+window.onload=function(){
+    window.setTimeout(function() { document.forms["frm_index"].submit(); }, 600000);
+};
+
+$(document).ready(function() {
+	$('#dtbl').DataTable({
+		responsive: true,
+		lengthMenu: [[ 10, 15, 50, -1], [10,  15, 50, "All"]]
+	});
+
+});
+
+</script>
+
+
+
+{% endblock %}
+

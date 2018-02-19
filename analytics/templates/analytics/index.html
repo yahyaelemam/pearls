@@ -1,0 +1,750 @@
+{% extends 'analytics/base.html' %}
+{% load staticfiles %}
+
+{% block main_content %}
+
+<head>
+    <!--<meta http-equiv="refresh" content="10"> -->
+    <script src="{% static 'analytics/gentelella-master/vendors/jquery.easy-pie-chart/dist/jquery.easypiechart.min.js'%}"></script>
+    <script src="{% static 'analytics/gentelella-master/vendors/jquery/dist/jquery.js'%}"></script>
+<!-- bootstrap-progressbar -->
+    <script src="{% static 'analytics/gentelella-master/vendors/bootstrap-progressbar/bootstrap-progressbar.min.js'%}"></script>
+    <script src="{% static 'analytics/gentelella-master/vendors/moment/min/moment.min.js' %}"></script>
+    <script src="{% static 'analytics/gentelella-master/vendors/bootstrap-daterangepicker/daterangepicker.js' %}"></script>
+
+    <link href="{% static 'analytics/gentelella-master/vendors/datatables.net-bs/css/dataTables.bootstrap.css' %}" rel="stylesheet">
+    <link href="{% static 'analytics/gentelella-master/vendors/datatables.net-responsive-bs/css/dataTables.responsive.css' %}" rel="stylesheet">
+    <!-- DataTables JS -->
+    <script src="{% static 'analytics/gentelella-master/vendors/datatables.net/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'analytics/gentelella-master/vendors/datatables.net-bs/js/dataTables.bootstrap.min.js' %}"></script>
+    <script src="{% static 'analytics/gentelella-master/vendors/datatables.net-responsive/js/dataTables.responsive.js' %}"></script>
+
+    <!-- Load c3.css -->
+    <link href="{% static 'C3/c3-0.4.18/c3.css'%}" rel="stylesheet">
+    <script src="{% static 'C3/d3.min.js'%}" charset="utf-8"></script>
+    <script src="{% static 'C3/c3-0.4.18/c3.min.js'%}"></script>
+
+<style>
+    .c3-line {
+    stroke-width: 2px;
+    }
+</style>
+
+</head>
+
+<!--------------------------------------Form----------------------------------------->
+<div class="row" align="right">
+
+        <form id="frm_index" method="post" action="{% url 'analytics:index' %}">
+
+            {% csrf_token %}
+            <input type="hidden" id="view_mode" name="view_mode" value="{{view_mode}}">
+            <i class="fa fa-calendar"></i>
+            <input type="text" name="daterange" value="{{date_from}} - {{date_to}}" style="background:#F8F9F9; cursor: pointer; padding: 5px 10px; border: 0px solid #ccc;"/>
+            &nbsp;
+            {% for i in companies %}
+                <label class="checkbox-inline">
+                  <input type="checkbox" name="company" id="company{{i.0}}" value={{i.0}} {{i.2}} />  {{i.1}}
+                </label>
+            {% endfor %}
+            <input type="submit" value="Apply" class="btn btn-sm">
+        </form>
+
+</div>
+<hr>
+
+{% if kpi_total_ds.total_op_profit != '0' %}
+<!---------------------------------------------total kpi---------------------------------->
+<div class="row"  align="center">
+      <!-- top tiles -->
+    <div class="row tile_count">
+        <div class="col-md-3 col-sm-6 col-xs-6 tile_stats_count">
+          <span class="count_top"><i class="fa fa-gears"></i> {{labels.operational_profit}} </span>
+          <div class="count ">{{kpi_total_ds.total_op_profit}}M</div>
+          <span class="count_bottom"> {{kpi_total_ds.op_profit_per}}% </span>
+        </div>
+        <div class="col-md-3 col-sm-6 col-xs-6 tile_stats_count">
+          <span class="count_top"><i class="fa fa-bar-chart-o"></i> {{labels.ebitda}} </span>
+          <div class="count">{{kpi_total_ds.total_ebitda}}M</div>
+          <span class="count_bottom"> {{kpi_total_ds.ebitda_per}}% </span>
+        </div>
+        <div class="col-md-3 col-sm-6 col-xs-6 tile_stats_count">
+          <span class="count_top"><i class="fa fa-bank"></i> {{labels.ebit}} </span>
+          <div class="count">{{kpi_total_ds.total_ebit}}M</div>
+          <span class="count_bottom"> {{kpi_total_ds.ebit_per}}% </span>
+        </div>
+        <div class="col-md-3 col-sm-6 col-xs-6 tile_stats_count">
+          <span class="count_top"><i class="fa fa-money"></i> {{labels.net_profit}}</span>
+          <div class="count green">{{kpi_total_ds.total_net_profit}}M</div>
+          <span class="count_bottom"> {{kpi_total_ds.net_profit_per}}% </span>
+        </div>
+    </div>
+</div>
+
+<hr>
+<!----------------------------Trend------------------------------>
+
+<!--<input type="button" value="test" onclick="trend_change('EBITDA')"> -->
+
+<div class="row" align="center">
+    <div class="col-md-12 col-sm-12 col-xs-12" >
+    <div id="chart_margin" style="width=100%;height:250px;align:center;float: center; overflow: hidden;" align="center"> </div>
+    </div>
+</div>
+
+<hr>
+<!---------------------------------------Overview------------------------------------->
+{% if kpi_ds.Net_Profit|length > 1 %}
+<div class="row">
+
+    <div class="col-md-4 col-sm-6 col-xs-12">
+        <div  id="net_ebitda_chart" align="center" style="width=100%;height:220px;align:center;"></div>
+    </div>
+
+    <div class="col-md-4 col-sm-6 col-xs-12">
+        <div  id="net_ebit_chart" align="center" style="width=100%;height:220px;align:center;"></div>
+    </div>
+
+    <div class="col-md-4 col-sm-6 col-xs-12">
+        <div  id="net_profit_chart" align="center" style="width=100%;height:220px;align:center;"></div>
+    </div>
+</div>
+
+<hr>
+{% endif %}
+<!---------------------------------------------kpi---------------------------------->
+
+<div class="row">
+    <div class="col-md-6 col-sm-6 col-xs-12">
+        <div class="x_panel tile ">
+            <div class="x_title">
+                <h2>{{labels.operational_profit}} - 000</h2>
+                <ul class="nav navbar-right panel_toolbox">
+                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                    </li>
+                    <li class="dropdown">
+                      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"> </a>
+                    </li>
+                    <li><a class="close-link"><i class="fa fa-close"></i></a>
+                    </li>
+                </ul>
+                <div class="clearfix"></div>
+              </div>
+              <div class="x_content">
+                   <div id="chart_op_profit" style="margin-bottom:20px;"> </div>
+                <h4 dir="{{user_profile.form_dir}}">{{labels.operational_profit}}  <font  size="2pt" style="background-color:lightgray;color:darkblue;"> {{kpi_total_ds.total_op_profit}} </font></h4>
+                  {% for rw in kpi_ds.Operation_Profit%}
+                  <div class="widget_summary">
+                    <div class="w_left w_25">
+                      <font size="2pt"; style="font-weight: bold;">{{rw.0}}</font> <font size="1pt" style="color:black;background-color:lightgray;"> {{rw.3}}% </font>
+                    </div>
+                    <div class="w_center w_55">
+                      <div class="progress">
+                        <div class="progress-bar bg-orange" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: {{rw.3}}%;">
+                          <span class="sr-only">{{rw.3}}% Complete</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="w_right w_20">
+                      <font size="2pt">{{rw.1}} : <font size="1pt" style="color:black;background-color:lightgray;"> {{rw.2}}% </font> </font>
+                    </div>
+                    <div class="clearfix"></div>
+                  </div>
+                  {% endfor%}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-sm-6 col-xs-12">
+        <div class="x_panel tile ">
+            <div class="x_title">
+                <h2>{{labels.ebitda}} - 000</h2>
+                <ul class="nav navbar-right panel_toolbox">
+                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                    </li>
+                    <li class="dropdown">
+                      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"> </a>
+                    </li>
+                    <li><a class="close-link"><i class="fa fa-close"></i></a>
+                    </li>
+                </ul>
+                <div class="clearfix"></div>
+              </div>
+              <div class="x_content">
+                   <div id="chart_ebitda" style="margin-bottom:20px;"> </div>
+                <h4 dir="{{user_profile.form_dir}}">{{labels.ebitda}} <font  size="2pt" style="background-color:lightgray;color:darkblue;"> {{kpi_total_ds.total_ebitda}} </font></h4>
+                  {% for rw in kpi_ds.EBITDA%}
+                  <div class="widget_summary">
+                    <div class="w_left w_25">
+                      <font size="2pt"; style="font-weight: bold;">{{rw.0}}</font> <font size="1pt" style="color:black;background-color:lightgray;"> {{rw.3}}% </font>
+                    </div>
+                    <div class="w_center w_55">
+                      <div class="progress">
+                        <div class="progress-bar bg-blue" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: {{rw.3}}%;">
+                          <span class="sr-only">{{rw.3}}% Complete</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="w_right w_20">
+                        <font size="2pt">{{rw.1}} <font size="1pt" style="color:black;background-color:lightgray;"> {{rw.2}}% </font></font>
+                    </div>
+                    <div class="clearfix"></div>
+                  </div>
+                  {% endfor%}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-sm-6 col-xs-12">
+        <div class="x_panel tile ">
+            <div class="x_title">
+                <h2>{{labels.ebit}} - 000</h2>
+                <ul class="nav navbar-right panel_toolbox">
+                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                    </li>
+                    <li class="dropdown">
+                      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"> </a>
+                    </li>
+                    <li><a class="close-link"><i class="fa fa-close"></i></a>
+                    </li>
+                </ul>
+                <div class="clearfix"></div>
+              </div>
+              <div class="x_content">
+                   <div id="chart_ebit" style="margin-bottom:20px;"> </div>
+                <h4 dir="{{user_profile.form_dir}}">{{labels.ebit}}  <font  size="2pt" style="background-color:lightgray;color:darkblue;"> {{kpi_total_ds.total_ebit}} </font></h4>
+                  {% for rw in kpi_ds.EBIT%}
+                  <div class="widget_summary">
+                    <div class="w_left w_25">
+                      <font size="2pt"; style="font-weight: bold;">{{rw.0}}</font> <font size="1pt" style="color:black;background-color:lightgray;"> {{rw.3}}% </font>
+                    </div>
+                    <div class="w_center w_55">
+                      <div class="progress">
+                        <div class="progress-bar bg-blue" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: {{rw.3}}%;">
+                          <span class="sr-only">{{rw.3}}% Complete</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="w_right w_20">
+                      <font size="2pt">{{rw.1}} : <font size="1pt" style="color:black;background-color:lightgray;"> {{rw.2}}% </font> </font>
+                    </div>
+                    <div class="clearfix"></div>
+                  </div>
+                  {% endfor%}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-sm-6 col-xs-12">
+        <div class="x_panel tile ">
+            <div class="x_title">
+                <h2>{{labels.net_profit}} - 000</h2>
+                <ul class="nav navbar-right panel_toolbox">
+                    <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                    </li>
+                    <li class="dropdown">
+                      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"> </a>
+                    </li>
+                    <li><a class="close-link"><i class="fa fa-close"></i></a>
+                    </li>
+                </ul>
+                <div class="clearfix"></div>
+              </div>
+              <div class="x_content">
+                   <div id="chart_net_profit" style="margin-bottom:20px;"> </div>
+                <h4 dir="{{user_profile.form_dir}}">{{labels.net_profit}} <font  size="2pt" style="background-color:lightgray;color:darkblue;"> {{kpi_total_ds.total_net_profit}} </font></h4>
+                  {% for rw in kpi_ds.Net_Profit%}
+                  <div class="widget_summary">
+                    <div class="w_left w_25">
+                      <font size="2pt"; style="font-weight: bold;">{{rw.0}}</font> <font size="1pt" style="color:black;background-color:lightgray;"> {{rw.3}}% </font>
+                    </div>
+                    <div class="w_center w_55">
+                      <div class="progress">
+                        <div class="progress-bar bg-green" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: {{rw.3}}%;">
+                          <span class="sr-only">{{rw.3}}% Complete</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="w_right w_20">
+                      <font size="2pt">{{rw.1}} : <font size="1pt" style="color:black;background-color:lightgray;"> {{rw.2}}% </font>  </font>
+                    </div>
+                    <div class="clearfix"></div>
+                  </div>
+                  {% endfor%}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-------------------------------------------------------------------------------->
+<div class="row">
+        <div class="col-md-6 col-sm-6 col-xs-12">
+            <div class="x_panel tile " >
+                <div class="x_title">
+                    <h2>{{labels.revenue}} - 000</h2>
+                    <ul class="nav navbar-right panel_toolbox">
+                        <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                        </li>
+                        <li class="dropdown">
+                          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"></a>
+                        </li>
+                        <li><a class="close-link"><i class="fa fa-close"></i></a>
+                        </li>
+                    </ul>
+                    <div class="clearfix"></div>
+                  </div>
+                  <div class="x_content">
+                    {% if kpi_ds.Net_Profit|length > 1 %}
+                        <div id="chart_revenue" style="width=100%;height:220px;align:center;"> </div>
+                    {% endif %}
+                    <h4 dir="{{user_profile.form_dir}}">{{labels.revenue}} <font  size="2pt" style="background-color:lightgray;color:darkorange;"> {{kpi_total_ds.total_revenue}} </font> </h4>
+                      {% for rw in kpi_ds.Revenue%}
+                      <div class="widget_summary">
+                        <div class="w_left w_25">
+                          <font size="2pt"; style="font-weight: bold;">{{rw.0}}</font> <font size="1pt" style="color:black;background-color:lightgray;"> {{rw.3}}% </font>
+                        </div>
+                        <div class="w_center w_55">
+                          <div class="progress">
+                            <div class="progress-bar bg-orange" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: {{rw.3}}%;">
+                              <span class="sr-only">{{rw.3}}% Complete</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="w_right w_20">
+                          <font size="2pt" >{{rw.1}} </font>
+                        </div>
+                        <div class="clearfix"></div>
+                      </div>
+                      {% endfor%}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-sm-6 col-xs-12">
+            <div class="x_panel tile ">
+                <div class="x_title">
+                    <h2>{{labels.cost}} - 000</h2>
+                    <ul class="nav navbar-right panel_toolbox">
+                        <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                        </li>
+                        <li class="dropdown">
+                          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"> </a>
+                        </li>
+                        <li><a class="close-link"><i class="fa fa-close"></i></a>
+                        </li>
+                    </ul>
+                    <div class="clearfix"></div>
+                  </div>
+                  <div class="x_content">
+                    {% if kpi_ds.Net_Profit|length > 1 %}
+                        <div id="chart_expense" style="width=100%;height:220px;align:center;"> </div>
+                    {% endif %}
+                    <h4 dir="{{user_profile.form_dir}}">{{labels.cost}} <font  size="2pt" style="background-color:lightgray;color:darkblue;"> {{kpi_total_ds.total_cost}} </font></h4>
+                      {% for rw in kpi_ds.Cost %}
+                      <div class="widget_summary">
+                        <div class="w_left w_25">
+                          <font size="2pt"; style="font-weight: bold;">{{rw.0}}</font> <font size="1pt" style="color:black;background-color:lightgray;"> {{rw.3}}% </font>
+                        </div>
+                        <div class="w_center w_55">
+                          <div class="progress">
+                            <div class="progress-bar bg-blue" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: {{rw.3}}%;">
+                              <span class="sr-only">{{rw.3}}% Complete</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="w_right w_20">
+                          <font size="2pt">{{rw.1}} </font>
+                        </div>
+                        <div class="clearfix"></div>
+                      </div>
+                      {% endfor%}
+                </div>
+            </div>
+        </div>
+
+</div>
+
+<!------------------------------------- script ------------------------------------------->
+
+
+<script>
+
+//-------------------C3 chart------------------------
+
+var chart_chart_margin = c3.generate({
+    bindto: '#chart_margin',
+    data: {
+        x: 'x',
+        columns: [
+            ['x', {% for rw in mrg_ds %} "{{rw.0}}", {% endfor %}],
+            ['{{labels.revenue}}', {% for rw in mrg_ds %}  {{ rw.1|cut:","}},   {% endfor %}],
+            ['{{labels.cost}}', {% for rw in mrg_ds %} {{ rw.2|cut:","}},   {% endfor %} ],
+            ['{{labels.net_profit}}', {% for rw in mrg_ds %} {{ rw.3|cut:","}},   {% endfor %} ],
+            ['{{labels.net_profit}} %', {% for rw in mrg_ds %} {{ rw.4|cut:","}},   {% endfor %}]
+        ],
+        types:{
+            {{labels.revenue}}: 'bar',
+            {{labels.cost}}: 'bar',
+            '{{labels.net_profit}}': 'bar',
+            '{{labels.net_profit}} %': 'area-spline'
+        },
+        colors: {
+            '{{labels.net_profit}} %': "rgba(38,105,42, 1)",
+            '{{labels.net_profit}}': "rgba(176, 100, 166,1)"
+        },
+        axes: {
+            '{{labels.net_profit}} %': 'y2'
+        }
+    },
+    title: {
+      text: '{{labels.net_profit}}'
+    },
+    axis: {
+        y: {
+            tick: {
+                format: d3.format(",")
+            }
+       },
+        x: {
+            type: 'category',
+            tick: {
+                rotate: {% if mrg_ds|length > 3 %} 90 {% else %} 0 {% endif %},
+                multiline: false,
+
+            }
+        },
+        y2:{
+            show: true,
+            tick:{
+                format: function (y2) { return y2.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '%'; },
+            }
+        }
+    },
+    grid: {
+        x: {
+            show: false
+        },
+        y: {
+            show: false
+        }
+    }
+});
+//-----------------------------------------------------------------------
+{% if kpi_ds.Net_Profit|length > 1 %}
+
+var chart_overview = c3.generate({
+    bindto: '#net_profit_chart',
+    data: {
+        columns: [
+            {% for rw in kpi_ds.Net_Profit %} ["{{rw.0}}", {{ rw.1|cut:","}}],   {% endfor %}
+        ],type: 'pie'
+    },
+    title: {
+      text: '{{labels.net_profit}} - %{{kpi_total_ds.net_profit_per}}'
+    },
+    color: {
+        pattern: ['#1f77b4', '#c5b0d5', '#ffbb78', '#2ca02c', '#98df8a', '#d62728', '#ff9896', '#9467bd', '#c5b0d5', '#8c564b', '#c49c94', '#e377c2', '#f7b6d2', '#7f7f7f', '#c7c7c7', '#bcbd22', '#dbdb8d', '#17becf', '#9edae5']
+    },
+    tooltip: {
+        format: {
+            title: function (d) { return 'Data ' + d; },
+            value: function (value, ratio, id) {
+                return d3.format(',')(value);
+            }
+        }
+    },
+    tooltip: {
+        format: {
+            title: function (d) { return '{{labels.net_profit}} '; },
+            value: function (value, ratio, id) {
+                return d3.format(',')(value) + ' : ' + d3.format('%')(ratio);
+            }
+        }
+    }
+});
+
+var chart_overview = c3.generate({
+    bindto: '#net_ebitda_chart',
+    data: {
+        columns: [
+            {% for rw in kpi_ds.EBITDA %} ["{{rw.0}}", {{ rw.1|cut:","}}],   {% endfor %}
+        ],type: 'pie'
+    },
+    title: {
+      text: '{{labels.ebitda}} - %{{kpi_total_ds.ebitda_per}}'
+    },
+    color: {
+        pattern: ['#1f77b4', '#c5b0d5', '#ffbb78', '#2ca02c', '#98df8a', '#d62728', '#ff9896', '#9467bd', '#c5b0d5', '#8c564b', '#c49c94', '#e377c2', '#f7b6d2', '#7f7f7f', '#c7c7c7', '#bcbd22', '#dbdb8d', '#17becf', '#9edae5']
+    },
+    tooltip: {
+        format: {
+            title: function (d) { return '{{labels.ebitda}} '; },
+            value: function (value, ratio, id) {
+                return d3.format(',')(value) + ' : ' + d3.format('%')(ratio);
+            }
+        }
+    }
+});
+
+var chart_overview = c3.generate({
+    bindto: '#net_ebit_chart',
+    data: {
+        columns: [
+            {% for rw in kpi_ds.EBIT %} ["{{rw.0}}", {{ rw.1|cut:","}}],   {% endfor %}
+        ],type: 'pie'
+    },
+    title: {
+      text: '{{labels.ebit}} - %{{kpi_total_ds.ebit_per}}'
+    },
+    color: {
+        pattern: ['#1f77b4', '#c5b0d5', '#ffbb78', '#2ca02c', '#98df8a', '#d62728', '#ff9896', '#9467bd', '#c5b0d5', '#8c564b', '#c49c94', '#e377c2', '#f7b6d2', '#7f7f7f', '#c7c7c7', '#bcbd22', '#dbdb8d', '#17becf', '#9edae5']
+    },
+    tooltip: {
+        format: {
+            title: function (d) { return '{{labels.ebit}}'; },
+            value: function (value, ratio, id) {
+                return d3.format(',')(value) + ' : ' + d3.format('%')(ratio);
+            }
+        }
+    }
+});
+
+{% endif %}
+
+//-----------------------------------------------------------------
+
+var chart = c3.generate({
+    bindto: '#chart_ebitda',
+    data: {
+    columns: [
+    ['{{labels.ebitda}}', {{kpi_total_ds.ebitda_per}}]
+    ],
+    type: 'gauge',
+    },
+    gauge: {
+
+    },
+    color: {
+    pattern: ['#FF0000', '#F97600', '#F6C600', '#60B044'], // the three color levels for the percentage values.
+    threshold: {
+    //            unit: 'value', // percentage is default
+    //            max: 100, // 100 is default
+    values: [5, 10, 20, 100]
+    }
+    },
+    size: {
+    height: 80
+    }
+});
+
+
+var chart = c3.generate({
+    bindto: '#chart_ebit',
+    data: {
+    columns: [
+    ['{{labels.ebit}}', {{kpi_total_ds.ebit_per}}]
+    ],
+    type: 'gauge',
+    },
+    gauge: {
+
+    },
+    color: {
+    pattern: ['#FF0000', '#F97600', '#F6C600', '#60B044'], // the three color levels for the percentage values.
+    threshold: {
+    //            unit: 'value', // percentage is default
+    //            max: 100, // 100 is default
+    values: [5, 10, 20, 100]
+    }
+    },
+    size: {
+    height: 80
+    }
+});
+
+var chart = c3.generate({
+    bindto: '#chart_net_profit',
+    data: {
+    columns: [
+    ['{{labels.net_profit}}', {{kpi_total_ds.net_profit_per}}]
+    ],
+    type: 'gauge',
+    },
+    gauge: {
+
+    },
+    color: {
+    pattern: ['#FF0000', '#F97600', '#F6C600', '#60B044'], // the three color levels for the percentage values.
+    threshold: {
+    //            unit: 'value', // percentage is default
+    //            max: 100, // 100 is default
+    values: [5, 10, 20, 100]
+    }
+    },
+    size: {
+    height: 80
+    }
+});
+
+var chart = c3.generate({
+    bindto: '#chart_op_profit',
+    data: {
+    columns: [
+    ['{{labels.operational_profit}}', {{kpi_total_ds.op_profit_per}}]
+    ],
+    type: 'gauge',
+    },
+    gauge: {
+
+    },
+    color: {
+    pattern: ['#FF0000', '#F97600', '#F6C600', '#60B044'], // the three color levels for the percentage values.
+    threshold: {
+    //            unit: 'value', // percentage is default
+    //            max: 100, // 100 is default
+    values: [5, 10, 20, 100]
+    }
+    },
+    size: {
+    height: 80
+    }
+});
+
+
+//-----------------------revenue-------------------
+
+var chart_overview = c3.generate({
+    bindto: '#chart_revenue',
+    data: {
+        columns: [
+            {% for rw in kpi_ds.Revenue %} ["{{rw.0}}", {{ rw.1|cut:","}}],   {% endfor %}
+        ],type: 'donut'
+    },
+    color: {
+        pattern: ['#1f77b4', '#c5b0d5', '#ffbb78', '#2ca02c', '#98df8a', '#d62728', '#ff9896', '#9467bd', '#c5b0d5', '#8c564b', '#c49c94', '#e377c2', '#f7b6d2', '#7f7f7f', '#c7c7c7', '#bcbd22', '#dbdb8d', '#17becf', '#9edae5']
+    },
+    donut: {
+            title: '{{kpi_total_ds.total_revenue}}',
+            label: {
+                show: true,
+            }
+    },
+    tooltip: {
+        format: {
+            title: function (d) { return '{{labels.revenue}}'; },
+            value: function (value, ratio, id) {
+                return d3.format(',')(value) + ' : ' + d3.format('%')(ratio);
+            }
+        }
+    }
+});
+
+//-----------------------revenue-------------------
+
+var chart_overview = c3.generate({
+    bindto: '#chart_expense',
+    data: {
+        columns: [
+            {% for rw in kpi_ds.Cost %} ["{{rw.0}}", {{ rw.1|cut:","}}],   {% endfor %}
+        ],type: 'donut'
+    },
+    color: {
+        pattern: ['#1f77b4', '#c5b0d5', '#ffbb78', '#2ca02c', '#98df8a', '#d62728', '#ff9896', '#9467bd', '#c5b0d5', '#8c564b', '#c49c94', '#e377c2', '#f7b6d2', '#7f7f7f', '#c7c7c7', '#bcbd22', '#dbdb8d', '#17becf', '#9edae5']
+    },
+    donut: {
+            title: '{{kpi_total_ds.total_cost}}',
+            label: {
+                show: true,
+            }
+    },
+    tooltip: {
+        format: {
+            title: function (d) { return '{{labels.cost}}'; },
+            value: function (value, ratio, id) {
+                return d3.format(',')(value) + ' : ' + d3.format('%')(ratio);
+            }
+        }
+    }
+});
+
+
+//--------------------------------
+
+$(document).ready(function() {
+	$('#dtbl').DataTable({
+		responsive: true,
+		lengthMenu: [[ 10, 15, 50, -1], [10,  15, 50, "All"]]
+	});
+
+});
+
+
+{% if view_mode == "1" %}
+    $(function() {
+        $('body').removeClass('nav-md').addClass('nav-sm');
+        $('.left_col').removeClass('scroll-view').removeAttr('style');
+        $('#sidebar-menu li').removeClass('active');
+        $('#sidebar-menu li ul').slideUp();
+    });
+
+{% endif %}
+
+//---------------------------------
+
+function trend_change(type_id){
+    if (type_id == 'EBITDA')
+    {
+        chart_chart_margin.load({
+            columns: [
+                ['x', {% for rw in mrg_ds %} "{{rw.0}}", {% endfor %}],
+                ['Revenue', {% for rw in mrg_ds %}  {{ rw.1|cut:","}},   {% endfor %}],
+                ['Expense', {% for rw in mrg_ds %} {{ rw.2|cut:","}},   {% endfor %} ],
+                ['EBITDA', {% for rw in mrg_ds %} {{ rw.3|cut:","}},   {% endfor %} ],
+                ['Net Profit %', {% for rw in mrg_ds %} {{ rw.4|cut:","}},   {% endfor %}]
+            ],
+            unload: 'Net Profit',
+            types:{
+                'EBITDA': 'bar',
+                Revenue: 'bar',
+                Expense: 'bar',
+                'Net Profit %': 'area-spline'
+            }
+        });
+    }
+}
+</script>
+
+
+{% endif %}
+
+<script>
+
+$(function() {
+    $('input[name="daterange"]').daterangepicker({
+    locale: {
+            format: 'YYYY/MM/DD'
+        }
+});
+});
+
+
+window.onload=function(){
+    window.setTimeout(function() { document.forms["frm_index"].submit(); }, 600000);
+};
+
+$('#menu_toggle').click(function(){
+    if ($(".top_nav").innerWidth() > 1080)
+    {
+        document.getElementById('view_mode').value = "0"
+    }
+    else
+    {
+        document.getElementById('view_mode').value = "1"
+    }
+});
+
+</script>
+
+{% endblock %}
+

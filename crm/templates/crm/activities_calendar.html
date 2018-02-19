@@ -1,0 +1,150 @@
+{% extends 'crm/base.html' %}
+{% load staticfiles %}
+
+{% block main_content %}
+
+<head>
+    <link rel='stylesheet' href="{% static 'fullcalendar-3.8.0/fullcalendar.css' %}"/>
+    <script src="{% static 'fullcalendar-3.8.0/lib/moment.min.js' %}"></script>
+    <script src="{% static 'fullcalendar-3.8.0/fullcalendar.js' %}"></script>
+
+   <!-- {% if user_profile.lang == 'ar' %}
+        <script src="{% static 'fullcalendar-3.8.0/locale/ar.js' %}">
+    {% endif %}
+    -->
+    <script src="{% static 'analytics/gentelella-master/vendors/bootstrap-daterangepicker/daterangepicker.js' %}"></script>
+
+</head>
+
+<div class="row" align="center">
+    <form method="post" dir="{{user_profile.form_dir}}"> {% csrf_token %}
+        <label for="id_date_from"> {{labels.from_date}} </label>
+        <input type="text" id = "id_date_from" name="date_from" value="{{date_from}}" size="12"/>
+        <label for="id_date_to"> {{labels.to_date}} </label>
+        <input type="text" id = "id_date_to" name="date_to" value="{{date_to}}" size="12"/>
+        <input type="submit" class="btn btn-primary" {% if user_profile.lang == 'ar' %} value="عرض" {% else %} value ="Apply" {% endif %} >
+        &nbsp
+        <a href="/crm/model_view/customers/">
+            <span><i title={% if user_profile.lang == 'ar' %} "إضافة مواعيد" {% else %} "ِNew appointment" {% endif %} class="fa fa-calendar-o"></i></span>
+        </a>
+    </form>
+    <hr>
+</div>
+
+<script>
+$(function() {
+    $('input[name="date_from"]').daterangepicker({
+        singleDatePicker: true,
+        showDropdowns: true,
+
+    //    timePicker: true,
+   // timePicker24Hour: true,
+   // timePickerIncrement: 30,
+    // format: 'YYYY-MM-DD H:mm'
+        locale: {
+            format: 'YYYY-MM-DD'
+        }
+    },
+    function(start, end, label) {
+        var years = moment().diff(start, 'years');
+    });
+});
+
+$(function() {
+    $('input[name="date_to"]').daterangepicker({
+        singleDatePicker: true,
+        showDropdowns: true,
+        locale: {
+            format: 'YYYY-MM-DD'
+        }
+    },
+    function(start, end, label) {
+        var years = moment().diff(start, 'years');
+    });
+});
+
+</script>
+{% if events|length > 0 %}
+
+<div id='calendar'></div>
+
+
+<script>
+  $(document).ready(function() {
+
+        $('#calendar').fullCalendar({
+           // {% if user_profile.lang == 'ar' %} lang: 'ar',{% endif %}
+            header: {
+                left: 'prev, next, today',
+                center: 'title',
+                right: 'month, listMonth', //agendaWeek, agendaDay,
+            },
+           //  defaultView: 'listMonth',
+            selectable: true,
+
+           // editable: true,
+            eventLimit: true, // allow "more" link when too many events
+            events: [
+                {% for i in events %}
+                {
+                    title: "{{i.0}}",
+                    start: '{{i.1}}',
+                    end: '{{i.2}}',
+                    description: '{{i.4}}',
+                    url: '/crm/customers_event_update/{{i.3}}/'
+                },
+                {% endfor %}
+
+            ],
+            eventRender: function(event, element) {
+                if(event.description == "Open") {
+                   // element.css('background-color', 'red');
+                   element.css('border-color', 'red');
+
+                }
+            },
+            height: 650,
+                 displayEventTime : false,
+            eventClick: function(calEvent, jsEvent, view) {
+
+               // alert('Event: ' + calEvent.title);
+             //   alert('Coordinates: ' + jsEvent.pageX + ',' + jsEvent.pageY);
+               // alert('View: ' + view.name);
+
+                // change the border color
+                $(this).css('border-color', 'red');
+
+            },
+     /*       eventMouseover: function(calEvent, jsEvent) {
+                var tooltip = '<div class="tooltipevent" style="width:150px;height:100px;background:#ccc;position:absolute;z-index:10001;">' + calEvent.title + '</div>';
+                var $tooltip = $(tooltip).appendTo('body');
+
+                $(this).mouseover(function(e) {
+                    $(this).css('z-index', 10000);
+                    $tooltip.fadeIn('500');
+                    $tooltip.fadeTo('10', 1.9);
+                }).mousemove(function(e) {
+                    $tooltip.css('top', e.pageY + 10);
+                    $tooltip.css('left', e.pageX + 20);
+                });
+            },
+
+            eventMouseout: function(calEvent, jsEvent) {
+                $(this).css('z-index', 8);
+                $('.tooltipevent').remove();
+            },
+            */
+        });
+        //$('#calendar').fullCalendar('next');
+        $('#calendar').fullCalendar('gotoDate', '{{date_to}}');
+
+    });
+
+
+
+</script>
+
+{% endif %}
+
+
+{% endblock %}

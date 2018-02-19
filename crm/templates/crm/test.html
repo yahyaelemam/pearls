@@ -1,0 +1,36 @@
+{% extends 'crm/base.html' %}
+{% load staticfiles %}
+
+{% block main_content %}
+
+<button type="button" class="btn btn-dark btn-lg" data-toggle="modal" data-target="#modal_actions">
+  Actions
+</button>
+
+<div id="modal_actions" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">{% if user_profile.lang == 'en' %} Actions {% else %} نتائج التواصل والنشاط {% endif %}</h4>
+      </div>
+      <div class="modal-body">
+        <form method="post" id="frm_modal_actions" dir="{{user_profile.form_dir}}">
+            {% csrf_token %}
+            {{form.as_p}}
+        </form>
+      </div>
+      <div class="modal-footer" align="center">
+        <button type="button" class="btn btn-default" data-dismiss="modal">
+            {% if user_profile.lang == 'en' %} Close {% else %} إلغاء {% endif %}
+        </button>
+        <button type="button" class="btn btn-primary" onclick="document.forms['frm_modal_actions'].submit()">
+            {% if user_profile.lang == 'en' %} Apply {% else %} تسجيل {% endif %}
+        </button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+{% endblock %}

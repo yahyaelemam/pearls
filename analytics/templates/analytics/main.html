@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    {% load staticfiles %}
+    {% load user_profile %}
+    {% user_profile user|safe as user_profile %}
+    {% user_apps user|safe as user_apps %}
+
+    <meta charset="UTF-8">
+    <title>Pearls Applications</title>
+
+    <link href="{% static 'analytics/gentelella-master/vendors/bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'analytics/gentelella-master/build/css/custom.min.css' %}" rel="stylesheet">
+    <link href="{% static 'analytics/gentelella-master/vendors/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet">
+
+</head>
+
+<body>
+<div class="container" style="back-ground:white; overflow: hidden;" dir="{{user_profile.form_dir}}">
+    <div class="row" align="center">
+        <u>
+        <h class="site_title" style="margin-top:3%;"
+             {% if user_profile.lang == 'ar' %}
+                title="منظومة اللؤلؤ تمنح نظره ثاقبة للنشاط التجاري">
+                   منظومة اللؤلؤ للحلول التقنية
+             {% else %}
+                title="Pearls brings insight into business data!">
+                  Pearls Analytics Solution
+             {% endif %}
+
+        </h>
+        </u>
+        <div style="margin-top:10%;width:78%;{% if user_profile.lang == 'ar' %}  margin-right:2%; {% else %} margin-left:2%; {% endif %}">
+            {% for k, v in user_apps.items %}
+            <div class="col-md-4 col-sm-12 col-xs-12 " align=  {% if user_profile.lang == 'ar' %}  "right" {% else %} "left" {% endif %} >
+                <a  href="{{v.url}}" class="site_title"><i class="{{v.class}}"></i>
+                     {% if user_profile.lang == 'ar' %}
+                          <span>{{v.title.ar|cut:"!"}}</span>
+                     {% else %}
+                          <span>{{v.title.en|cut:"!"}}</span>
+                     {% endif %}
+
+                </a>
+            </div>
+             {% endfor %}
+        </div>
+    </div>
+</div>
+</body>
+</html>

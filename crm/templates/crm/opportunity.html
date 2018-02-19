@@ -1,0 +1,76 @@
+{% extends 'crm/base.html' %}
+{% load staticfiles %}
+
+{% block main_content %}
+<head>
+    <script src="{% static 'analytics/gentelella-master/vendors/moment/min/moment.min.js' %}"></script>
+    <script src="{% static 'analytics/gentelella-master/vendors/bootstrap-daterangepicker/daterangepicker.js' %}"></script>
+</head>
+<div class="row" align="center">
+    <ul>
+        <i> <span class="label label-primary">{{customer_name}}</span> </i>
+    </ul>
+    <hr>
+</div>
+
+<div class="row" style="padding:10px 50px 15px 50px;" align={% if user_profile.lang == 'en' %} "left" {% else %} "right" {% endif %}>
+<h2> <u> {{title}} </u> </h2>
+</div>
+ <div class="row" align="center">
+   <div class="col-md-12 col-sm-12 col-xs-12" style="margin-left:0%;">
+       <form  method="post" action="{% url 'crm:opportunity_save' %}">
+           {% csrf_token %}
+           {% include 'crm/from_template.html' %}
+           <input type="hidden" name="pk_id" value="{{pk_id}}">
+           <input type="hidden" name="customer" value="{{customer}}">
+           <div class="form-group">
+               <div align="center" style="margin-top:10px;">
+                   <input type="submit" id="btn_save" class="btn btn-primary" value={% if user_profile.lang == 'en' %} "Save" {% else %} "حفظ" {% endif %}>
+                   <a href="/crm/model_view/opportunities/" class="btn btn-info" >
+                       {% if user_profile.lang == 'en' %} Back {% else %} رجوع {% endif %}
+                   </a>
+       </form>
+               </div>
+           </div>
+
+   </div>
+</div>
+
+<br>
+<script>
+
+
+
+ {% for f in hidden_fields %}
+        document.getElementById("id_{{f}}").disabled = true;
+ {% endfor %}
+
+{% for field in form %}
+    {% if 'date' in field.name %}
+        $(function() {
+            $('input[name="{{field.name}}"]').daterangepicker({
+                singleDatePicker: true,
+                showDropdowns: true,
+                locale: {
+                    format: 'YYYY-MM-DD'
+                }
+            },
+            function(start, end, label) {
+                var years = moment().diff(start, 'years');
+            });
+        });
+    {% endif %}
+ {% endfor %}
+
+{% if form.status.value != "o" %}
+
+    {% for field in form %}
+        document.getElementById("id_{{field.name}}").disabled = true;
+        document.getElementById('btn_save').style.visibility = 'hidden';
+    {% endfor %}
+
+{% endif%}
+
+document.getElementById("id_description").size = "35";
+</script>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends 'analytics/base.html' %}
+{% load staticfiles %}
+
+{% block main_content %}
+
+<head>
+    <!-- DataTables CSS -->
+    <link href="{% static 'analytics/gentelella-master/vendors/datatables.net-bs/css/dataTables.bootstrap.css' %}" rel="stylesheet">
+    <link href="{% static 'analytics/gentelella-master/vendors/datatables.net-responsive-bs/css/dataTables.responsive.css' %}" rel="stylesheet">
+    <!-- DataTables JS -->
+    <script src="{% static 'analytics/gentelella-master/vendors/datatables.net/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'analytics/gentelella-master/vendors/datatables.net-bs/js/dataTables.bootstrap.min.js' %}"></script>
+    <script src="{% static 'analytics/gentelella-master/vendors/datatables.net-responsive/js/dataTables.responsive.js' %}"></script>
+
+</head>
+
+{% if frm %}
+    <div class="row" align="center" style="padding-bottom: 0.2cm;">
+        <form method="post">
+            {% csrf_token %}
+            {% for field in frm %}
+                {% if forloop.counter == 4 or  forloop.counter == 8 %}
+                    <br>
+                {% endif %}
+                {% if field.field.widget.input_type != 'hidden' %}
+                    {{ field.label_tag }} {{ field }}
+                {% endif %}
+            {% endfor %}
+            <input type="hidden" name="report_id" value="{{report_id}}">
+            <input type="submit" value="Display">
+        </form>
+    </div>
+{% endif %}
+
+{% if ds%}
+<div class="row">
+    <div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+          <div class="x_title">
+            <h2> {{title}} </h2>
+            <ul class="nav navbar-right panel_toolbox">
+              <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+              </li>
+              <li><a class="close-link"><i class="fa fa-close"></i></a>
+              </li>
+            </ul>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+
+            <div align="center">
+                <form action="{% url 'analytics:test2' %}" method="post">
+                     {% csrf_token %}
+                {{ ds|safe }}
+                <input type="hidden" name="report_id" value="{{report_id}}">
+                <input type="submit" name="testform" value="OK" />
+                </form>
+
+
+    <script>
+			$(document).ready(function() {
+				$('#dtbl').DataTable({
+					responsive: true,
+					lengthMenu: [[ 10, 15, 50, -1], [10,  15, 50, "All"]]
+				});
+			});
+
+			$("#slct_all").click(function () {
+                var chkAll = this;
+                var chkRows = $("#dtbl").find(".chkRow");
+                chkRows.each(function () {
+                    $(this)[0].checked = chkAll.checked;
+                });
+            });
+	</script>
+
+              </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endif%}
+
+{% include 'analytics/form_request_model_record.html' %}
+
+{% endblock %}

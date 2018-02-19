@@ -1,0 +1,38 @@
+{% extends 'crm/base.html' %}
+{% load staticfiles %}
+
+{% block main_content %}
+
+<div class="row" style="padding:10px 50px 15px 50px;" align={% if user_profile.lang == 'en' %} "left" {% else %} "right" {% endif %}>
+<h2> <u>{{title}} </u> </h2>
+</div>
+ <div class="row" align="center">
+   <div class="col-md-12 col-sm-12 col-xs-12" style="margin-left:0%;">
+       <form  method="post" id="frm_view_record">
+           {% csrf_token %}
+           {% include 'crm/from_template.html' %}
+           <input type="hidden" name="model_name" id="model_name" value="{{model_name}}">
+           <input type="hidden" name="pk_id" id="pk_id" value="{{pk_id}}">
+           <div class="form-group">
+               <div align="center" style="margin-top:10px;">
+                   <input id="btn_save" type="submit" class="btn btn-primary" value={% if user_profile.lang == 'en' %} "Save" {% else %} "حفظ" {% endif %}>
+                   <a href="/crm/model_view/{{model_name|safe}}/" class="btn btn-info"> {% if user_profile.lang == 'en' %} Back {% else %} رجوع {% endif %}</a>
+                <!--   <a  href="/crm/model_record_delete/{{model_name|safe}}/{{pk_id|safe}}/delete/" class="btn btn-dark">{% if user_profile.lang == 'en' %} Delete {% else %} حذف {% endif %}</a> -->
+
+               </div>
+           </div>
+       </form>
+   </div>
+</div>
+<br>
+
+ <script>
+    {% if 'status' in form.fields and form.status.value != 'd' and form.status.value != 'o' %}
+        {% for field in form %}
+            document.getElementById("id_{{field.name}}").disabled = true;
+        {% endfor %}
+        document.getElementById('btn_save').style.visibility = 'hidden';
+    {% endif%}
+</script>
+
+{% endblock %}

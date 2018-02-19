@@ -1,0 +1,98 @@
+{% extends 'crm/base.html' %}
+{% load staticfiles %}
+
+{% block main_content %}
+<head>
+    <script src="{% static 'analytics/gentelella-master/vendors/moment/min/moment.min.js' %}"></script>
+    <script src="{% static 'analytics/gentelella-master/vendors/bootstrap-daterangepicker/daterangepicker.js' %}"></script>
+</head>
+<div class="row" align="center">
+    <ul>
+        {% for i in qs %}
+        <i> <span class="label label-primary">{{i}}</span> </i>
+        {% endfor%}
+    </ul>
+    <hr>
+</div>
+
+<div class="row" style="padding:10px 50px 15px 50px;" align={% if user_profile.lang == 'en' %} "left" {% else %} "right" {% endif %}>
+<h2> <u> {{title}} </u> </h2>
+</div>
+ <div class="row" align="center">
+   <div class="col-md-12 col-sm-12 col-xs-12" style="margin-left:0%;">
+       <form  method="post" action="{% url 'crm:customers_event_save' %}">
+           {% csrf_token %}
+           {% include 'crm/from_template.html' %}
+           <input type="hidden" name="pk_id" value="{{pk_id}}">
+           <input type="hidden" name="customers" value="{{customers}}">
+           <div class="form-group">
+               <div align="center" style="margin-top:10px;">
+                   <input type="submit" id="btn_save" class="btn btn-primary" value={% if user_profile.lang == 'en' %} "Save" {% else %} "حفظ" {% endif %}>
+                   <a href=
+                              {% if customers|length == 1 %}
+                                "/crm/customers/{{customers.0}}"
+                              {% else %}
+                                "/crm/model_view/customers/"
+                              {% endif%}
+                   class="btn btn-info" >
+                       {% if user_profile.lang == 'en' %} Back {% else %} رجوع {% endif %}
+                   </a>
+                   {% if pk_id %}
+                       <a id="btn_actions" href="/crm/customers_event_actions_add/{{pk_id}}/" class="btn btn-dark">
+                           {% if user_profile.lang == 'en' %} Actions {% else %} نتائج التواصل {% endif %}
+                       </a>
+                   {% endif %}
+       </form>
+               </div>
+           </div>
+
+   </div>
+</div>
+<div class="row">
+    <hr>
+    {% if ds_actions %}
+         <form  method="post">
+        {{ds_actions|safe}}
+             </form>
+    {% endif %}
+</div>
+<br>
+<script>
+
+
+
+ {% for f in hidden_fields %}
+        document.getElementById("id_{{f}}").disabled = true;
+ {% endfor %}
+
+{% for field in form %}
+    {% if 'date' in field.name %}
+        $(function() {
+            $('input[name="{{field.name}}"]').daterangepicker({
+                singleDatePicker: true,
+                showDropdowns: true,
+                locale: {
+                    format: 'YYYY-MM-DD'
+                }
+            },
+            function(start, end, label) {
+                var years = moment().diff(start, 'years');
+            });
+        });
+    {% endif %}
+ {% endfor %}
+
+{% if form.status.value == "c" %}
+
+    {% for field in form %}
+        document.getElementById("id_{{field.name}}").disabled = true;
+        document.getElementById('btn_save').style.visibility = 'hidden';
+        document.getElementById('btn_actions').style.visibility = 'hidden';
+    {% endfor %}
+
+{% endif%}
+
+document.getElementById('dtbl').className='table table-striped table-bordered table-hover';
+
+</script>
+{% endblock %}

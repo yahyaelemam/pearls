@@ -1,0 +1,21 @@
+{% extends 'analytics/base.html' %}
+{% load staticfiles %}
+
+{% block main_content %}
+
+<head>
+    <!-- DataTables CSS -->
+    <link href="{% static 'analytics/gentelella-master/vendors/datatables.net-bs/css/dataTables.bootstrap.css' %}" rel="stylesheet">
+    <link href="{% static 'analytics/gentelella-master/vendors/datatables.net-responsive-bs/css/dataTables.responsive.css' %}" rel="stylesheet">
+    <!-- DataTables JS -->
+    <script src="{% static 'analytics/gentelella-master/vendors/datatables.net/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'analytics/gentelella-master/vendors/datatables.net-bs/js/dataTables.bootstrap.min.js' %}"></script>
+    <script src="{% static 'analytics/gentelella-master/vendors/datatables.net-responsive/js/dataTables.responsive.js' %}"></script>
+
+</head>
+ {{report_id}}
+{% for i in its %}
+    {{i}}
+{% endfor %}
+
+{% endblock %}

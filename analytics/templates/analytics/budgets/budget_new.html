@@ -1,0 +1,38 @@
+{% extends 'analytics/base.html' %}
+{% load staticfiles %}
+{% load status %}
+{% block main_content %}
+
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="x_panel">
+            <form  method="post" action="{% url 'analytics:budget_new' %}">
+                {% csrf_token %}
+                {% for field in form %}
+                        {{ hidden }}
+                        <div>
+                            {{ field.label_tag }}
+                        </div>
+                        <div>
+                            {{ field }}
+                        </div>
+
+                            <br>
+                {% endfor %}
+                <input type="submit" value="Save" class="btn btn-primary btn-sm">
+
+            </form>
+        </div>
+    </div>
+</div>
+{{budget_id}}
+<script>
+document.getElementById("id_account_id").focus();
+//document.getElementById("id_status").disabled = true;
+//document.getElementById("id_company").disabled = true;
+</script>
+
+{% endblock %}
+
+

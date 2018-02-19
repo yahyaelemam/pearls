@@ -1,0 +1,14 @@
+<form id="frm_rq_rcd" method="post" action="{% url 'analytics:model_record_view' %}">
+    {% csrf_token %}
+    <input type="hidden" name="pk_id" id="id_pk_id">
+    <input type="hidden" name="report_id" id="id_report_id" value="{{report_id}}">
+ </form>
+
+<script>
+   function get_record(model_name, pk_id){
+        document.getElementById("id_pk_id").value = pk_id;
+        document.getElementById("id_report_id").value = '{{report_id}}';
+        document.forms["frm_rq_rcd"].submit();
+   }
+
+</script>

@@ -1,0 +1,59 @@
+{
+  "analytics": {
+    "class": "fa fa-bar-chart-o",
+    "title": {"eng": "Analytics", "ar": "Analytics"},
+    "url": "/analytics/",
+    "links": [
+      {
+        "class":"glyphicon glyphicon-signal",
+        "title": {"eng": "Trends KPIs", "ar": "اتجاهات الأداء"},
+        "sub_links": [
+          {"en": "Accounts Types", "ar": "أنواع الحسابات", "url": "{% url 'analytics:account_trends_summary' %}"},
+          {"en": "Accounts Categories", "ar": "تصنيفات الحسابات", "url": "{% url 'analytics:account_trends_detail' %}"}
+        ]
+      },
+      {
+        "class": "fa fa-line-chart",
+        "title": {"eng": "Margins KPIs", "ar": "هامش الربح"},
+        "sub_links":[
+          {"en": "Revenues vs Expense", "ar": "مقارنة المصروفات والحسابات", "url": "{% url 'analytics:mrgn_revenues_expense' %}"}
+        ]
+      },
+      {
+        "class": "glyphicon glyphicon-bitcoin",
+        "title": {"eng": "Budget", "ar": "الميزانية"},
+        "sub_links": [
+          {"en": "Budget - Dashboard", "ar": "مؤشرات أداء الميزانية", "url": "{% url 'analytics:budget_dashboard' %}"},
+          {"en": "View Budget - Account", "ar": "استعراض الميزانية", "url": "{% url 'analytics:budget_view' %}"},
+          {"en": "Add New Budget - Account", "ar": "إدخال الميزانية", "url": "/pearls/analytics/budget/add/"}
+        ]
+      },
+      {
+        "class": "fa fa-table",
+        "title": {"eng": "Pearls Admin", "ar": "admin"},
+        "sub_link":[
+          {"en": "Admin", "ar": "Admin", "url": "/pearls/"}
+        ]
+      }
+
+    ]
+  },
+  "crm": {
+    "class": "fa fa-users",
+    "title": {"eng": "CRM", "ar": "إدارة العملاء" },
+    "url": "/crm/",
+    "links": [
+      {
+        "class": "fa fa-flag",
+        "title": {"eng": "Customers Category", "ar": "تصنيف العملاء"},
+        "sub_link":[
+          {"eng": "Customers Category", "ar": "تصنيف العملاء", "url": "/crm/model_view/customerscategories/"}
+        ]
+      }
+    ]
+  }
+
+
+
+
+}
